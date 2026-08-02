@@ -1,80 +1,102 @@
 /* ==========================================================================
-   POWER - Malaysia Geopolitics, Cabinet & 1-Week Election Simulator
-   Game Engine & Application Logic (Robust Timeout & Fallback Edition)
+   POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
+   Game Engine & Application Logic ("A House Divided" Sleek Edition)
    ========================================================================== */
+
+/* Real Malaysian Corporations listed on Bursa Malaysia (KLSE) */
+const BURSA_MALAYSIA_CORPORATIONS = [
+  {
+    id: 1,
+    name: "PETRONAS Gas Berhad",
+    sector: "Energy",
+    sectorClass: "sector-energy",
+    exchange: "Bursa Main",
+    price: 18.50,
+    mktCap: "MYR 36.6B",
+    dailyRev: "+MYR 8.5M/d",
+    logo: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b2?w=100&auto=format&fit=crop",
+    progress: 85
+  },
+  {
+    id: 2,
+    name: "Maybank Berhad",
+    sector: "Banking",
+    sectorClass: "sector-banking",
+    exchange: "Bursa Main",
+    price: 9.80,
+    mktCap: "MYR 118.2B",
+    dailyRev: "+MYR 14.2M/d",
+    logo: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop",
+    progress: 92
+  },
+  {
+    id: 3,
+    name: "Sime Darby Plantation",
+    sector: "Agriculture",
+    sectorClass: "sector-retail",
+    exchange: "Bursa Main",
+    price: 4.30,
+    mktCap: "MYR 29.7B",
+    dailyRev: "+MYR 6.1M/d",
+    logo: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=100&auto=format&fit=crop",
+    progress: 70
+  },
+  {
+    id: 4,
+    name: "Tenaga Nasional Berhad",
+    sector: "Energy",
+    sectorClass: "sector-energy",
+    exchange: "Bursa Main",
+    price: 13.20,
+    mktCap: "MYR 76.4B",
+    dailyRev: "+MYR 11.8M/d",
+    logo: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=100&auto=format&fit=crop",
+    progress: 88
+  },
+  {
+    id: 5,
+    name: "Skeedoo Real Estate MY",
+    sector: "Real Estate",
+    sectorClass: "sector-realestate",
+    exchange: "Bursa ACE",
+    price: 1.25,
+    mktCap: "MYR 12.5M",
+    dailyRev: "+MYR 450K/d",
+    logo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100&auto=format&fit=crop",
+    progress: 60
+  },
+  {
+    id: 6,
+    name: "Gamuda Infrastructure",
+    sector: "Manufacturing",
+    sectorClass: "sector-manufacturing",
+    exchange: "Bursa Main",
+    price: 6.10,
+    mktCap: "MYR 16.5B",
+    dailyRev: "+MYR 3.9M/d",
+    logo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=100&auto=format&fit=crop",
+    progress: 75
+  }
+];
+
+/* Real Commodities Market (Malaysia Focus) */
+const MALAYSIAN_COMMODITIES = [
+  { name: "Crude Palm Oil (CPO)", unit: "Ton", price: "MYR 3,850", daily: "+MYR 120/d", sectorClass: "sector-retail" },
+  { name: "Petroleum (Brent Crude)", unit: "Barrel", price: "MYR 380", daily: "+MYR 14/d", sectorClass: "sector-energy" },
+  { name: "Rubber (SMR 20 Grade)", unit: "100kg", price: "MYR 720", daily: "+MYR 8/d", sectorClass: "sector-manufacturing" },
+  { name: "Tin (Bursa Tin Market)", unit: "Ton", price: "MYR 125,000", daily: "+MYR 1,500/d", sectorClass: "sector-banking" },
+  { name: "Gold (999 Physical Gold)", unit: "Gram", price: "MYR 345", daily: "+MYR 6/d", sectorClass: "sector-realestate" }
+];
 
 /* Real Malaysian Political Parties & Coalitions */
 const REAL_MALAYSIAN_PARTIES = [
-  { 
-    id: "ph", 
-    name: "Pakatan Harapan (PH)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", 
-    color: "#ef4444", 
-    seats: 82, 
-    polling: 36.8, 
-    leader: "Anwar Ibrahim", 
-    ideology: "Social Democracy / Reformist" 
-  },
-  { 
-    id: "pn", 
-    name: "Perikatan Nasional (PN)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", 
-    color: "#0284c7", 
-    seats: 74, 
-    polling: 33.2, 
-    leader: "Muhyiddin Yassin", 
-    ideology: "Conservatism / Malay-Muslim Unity" 
-  },
-  { 
-    id: "bn", 
-    name: "Barisan Nasional (BN)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", 
-    color: "#1e3a8a", 
-    seats: 30, 
-    polling: 18.5, 
-    leader: "Ahmad Zahid Hamidi", 
-    ideology: "Traditional Conservatism / Nationalism" 
-  },
-  { 
-    id: "gps", 
-    name: "Gabungan Parti Sarawak (GPS)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", 
-    color: "#f59e0b", 
-    seats: 23, 
-    polling: 6.2, 
-    leader: "Abang Johari Openg", 
-    ideology: "Regional Autonomy / Sarawak First" 
-  },
-  { 
-    id: "grs", 
-    name: "Gabungan Rakyat Sabah (GRS)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", 
-    color: "#10b981", 
-    seats: 6, 
-    polling: 2.8, 
-    leader: "Hajiji Noor", 
-    ideology: "Sabah Regional Autonomy" 
-  },
-  { 
-    id: "warisan", 
-    name: "Parti Warisan (WARISAN)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", 
-    color: "#a855f7", 
-    seats: 3, 
-    polling: 1.5, 
-    leader: "Shafie Apdal", 
-    ideology: "Multiracialism / Sabah Unity" 
-  },
-  { 
-    id: "muda", 
-    name: "Ikatan Demokratik Malaysia (MUDA)", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", 
-    color: "#f43f5e", 
-    seats: 1, 
-    polling: 1.0, 
-    leader: "Syed Saddiq", 
-    ideology: "Youth Politics / Progressive" 
-  }
+  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "Anwar Ibrahim", ideology: "Social Democracy / Reformist" },
+  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "Muhyiddin Yassin", ideology: "Conservatism / Malay-Muslim Unity" },
+  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "Ahmad Zahid Hamidi", ideology: "Traditional Conservatism / Nationalism" },
+  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "Abang Johari Openg", ideology: "Regional Autonomy / Sarawak First" },
+  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "Hajiji Noor", ideology: "Sabah Regional Autonomy" },
+  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "Shafie Apdal", ideology: "Multiracialism / Sabah Unity" },
+  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "Syed Saddiq", ideology: "Youth Politics / Progressive" }
 ];
 
 /* 14 Malaysian States/Territories & Real DUN Seat Counts */
@@ -143,8 +165,9 @@ function defaultGameState() {
       { title: "Rancangan Pembangunan Ekonomi Digital Selangor 2026", author: "Wan Luqman", date: "2 jam lepas", views: 4250, likes: 890 }
     ],
     chatMessages: [
-      { sender: "Sistem", text: "Selamat datang ke Server Geopolitik & Parlimen Malaysia!" }
+      { sender: "Sistem", text: "Selamat datang ke Server Geopolitik & Bursa Malaysia!" }
     ],
+    corporations: JSON.parse(JSON.stringify(BURSA_MALAYSIA_CORPORATIONS)),
     parties: JSON.parse(JSON.stringify(REAL_MALAYSIAN_PARTIES)),
     states: defaultStates(),
     lobbies: [
@@ -164,7 +187,8 @@ function defaultGameState() {
     spectrum: ["Extremely Left Wing", "Very Left Wing", "Left Wing", "Center Left", "Centrist", "Center Right", "Right Wing", "Extremely Right Wing"],
     econPos: 4,
     socialPos: 5,
-    selectedState: "Selangor"
+    selectedState: "Selangor",
+    stockSubTab: "listings"
   };
 }
 
@@ -173,7 +197,7 @@ let currentUser = null;
 let lastMidnightReset = null;
 let saveTimer = null;
 
-/* Robust Boot & Timeout Handler: Guarantees Loader Hides Within 2.5s */
+/* Boot & Auth Handling */
 window.addEventListener("DOMContentLoaded", async () => {
   const forceDismissTimeout = setTimeout(() => {
     const bootLoader = document.getElementById("bootLoader");
@@ -245,6 +269,7 @@ async function routeAfterAuth() {
         if (gs.roster) state.roster = gs.roster;
         if (gs.cabinet) state.cabinet = gs.cabinet;
         if (gs.articles) state.articles = gs.articles;
+        if (gs.corporations) state.corporations = gs.corporations;
         lastMidnightReset = gs.last_midnight_reset;
       }
     }
@@ -316,7 +341,6 @@ async function handleAuth(e) {
     }
   }
 
-  // Fallback local auth if server offline
   currentUser = { id: "local_user", email: email };
   document.getElementById("authModal").style.display = "none";
   document.getElementById("setupScreen").style.display = "block";
@@ -353,7 +377,6 @@ async function handleRegister(e) {
     }
   }
 
-  // Fallback local registration if server offline
   currentUser = { id: "local_user", email: email };
   document.getElementById("authModal").style.display = "none";
   document.getElementById("setupScreen").style.display = "block";
@@ -450,6 +473,7 @@ function buildGameStateRow() {
     roster: state.roster,
     cabinet: state.cabinet,
     articles: state.articles,
+    corporations: state.corporations,
     last_midnight_reset: lastMidnightReset || new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -614,7 +638,7 @@ function renderChat() {
   if (!box) return;
   box.innerHTML = "";
   state.chatMessages.forEach(c => {
-    box.innerHTML += `<div class="log-item"><b style="color:var(--accent);">${c.sender}:</b> ${c.text}</div>`;
+    box.innerHTML += `<div class="log-item"><b style="color:var(--accent-red);">${c.sender}:</b> ${c.text}</div>`;
   });
   box.scrollTop = box.scrollHeight;
 }
@@ -638,16 +662,90 @@ function showToast(msg, isError) {
   setTimeout(() => { banner.style.display = "none"; }, 3500);
 }
 
-function advanceTurn() {
-  state.player.pp += 10.0;
-  state.player.funds += 50000;
-  showToast("Kempen Turn Selesai! +10 Political Power (PP) & +MYR 50,000 Liquid Capital.");
-  updateUI();
-  queueSave();
+function switchStockSubTab(tab) {
+  state.stockSubTab = tab;
+  document.getElementById("btnSubListings").className = tab === 'listings' ? 'sub-tab-btn active' : 'sub-tab-btn';
+  document.getElementById("btnSubCommodities").className = tab === 'commodities' ? 'sub-tab-btn active' : 'sub-tab-btn';
+  renderStockMarketList();
+}
+
+function renderStockMarketList() {
+  const container = document.getElementById("stockListContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (state.stockSubTab === 'listings') {
+    state.corporations.forEach((c, idx) => {
+      const card = document.createElement("div");
+      card.className = "stock-item-card";
+      card.innerHTML = `
+        <div class="stock-left">
+          <div class="stock-rank">${idx + 1}</div>
+          <img src="${c.logo}" class="stock-avatar" alt="Corp">
+          <div class="stock-info">
+            <h4>${c.name}</h4>
+            <span class="sector-pill ${c.sectorClass}">${c.sector}</span>
+            <div class="stock-mktcap">MKT CAP <b>${c.mktCap}</b></div>
+          </div>
+        </div>
+        <div class="stock-right">
+          <div class="stock-price">MYR ${c.price.toFixed(2)}</div>
+          <div class="stock-daily">${c.exchange} ${c.dailyRev}</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${c.progress}%"></div></div>
+          <button class="btn-primary" style="margin-top:8px; padding:4px 10px; font-size:11px;" onclick="buyStock('${c.name}', ${c.price})">Beli Saham</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } else {
+    MALAYSIAN_COMMODITIES.forEach((cm, idx) => {
+      const card = document.createElement("div");
+      card.className = "stock-item-card";
+      card.innerHTML = `
+        <div class="stock-left">
+          <div class="stock-rank">${idx + 1}</div>
+          <div class="stock-info">
+            <h4>${cm.name}</h4>
+            <span class="sector-pill ${cm.sectorClass}">Komoditi Malaysia</span>
+            <div class="stock-mktcap">Unit <b>${cm.unit}</b></div>
+          </div>
+        </div>
+        <div class="stock-right">
+          <div class="stock-price">${cm.price}</div>
+          <div class="stock-daily">${cm.daily}</div>
+          <button class="btn-green" style="margin-top:8px; padding:4px 10px; font-size:11px;" onclick="showToast('Pembelian unit komoditi ${cm.name} berjaya!')">Beli Komoditi</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+}
+
+function promptFoundCorporation() {
+  const name = prompt("Masukkan nama syarikat korporat baharu untuk disenaraikan di Bursa Malaysia:", "Genting Synergies Berhad");
+  if (name && state.player.funds >= 100000) {
+    state.player.funds -= 100000;
+    state.corporations.unshift({
+      id: Date.now(),
+      name: name,
+      sector: "Real Estate",
+      sectorClass: "sector-realestate",
+      exchange: "Bursa ACE",
+      price: 1.00,
+      mktCap: "MYR 10.0M",
+      dailyRev: "+MYR 200K/d",
+      logo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100&auto=format&fit=crop",
+      progress: 50
+    });
+    showToast(`🏢 Syarikat Awam '${name}' berjaya disenaraikan di Bursa Malaysia!`);
+    updateUI();
+    queueSave();
+  } else showToast("Sila pastikan dana mencukupi (MYR 100,000 required)!", true);
 }
 
 function updateUI() {
   document.getElementById("navPlayerName").innerText = state.player.name;
+  document.getElementById("bottomPlayerName").innerText = state.player.name;
   document.getElementById("profileTitle").innerText = state.player.name;
   document.getElementById("barPower").innerText = state.player.pp.toFixed(1);
   document.getElementById("barFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
@@ -671,6 +769,7 @@ function updateUI() {
   renderCabinet();
   renderArticles();
   renderChat();
+  renderStockMarketList();
   loadStateDUN(state.selectedState);
   
   if (document.getElementById("econSlider")) {
@@ -695,11 +794,11 @@ function renderCabinet() {
   for (const [role, ministerName] of Object.entries(state.cabinet)) {
     const card = document.createElement("div");
     card.className = "card";
-    card.style.background = "rgba(0,0,0,0.3)";
+    card.style.background = "rgba(10,15,29,0.5)";
     card.style.padding = "12px";
     card.innerHTML = `
       <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">${role.toUpperCase()}</div>
-      <div style="font-size:14px; font-weight:bold; color:var(--accent); margin-top:2px;">${ministerName}</div>
+      <div style="font-size:14px; font-weight:bold; color:var(--accent-red); margin-top:2px;">${ministerName}</div>
       <button class="btn-blue" style="margin-top:8px; width:100%; padding:4px 8px; font-size:11px;" onclick="promptCabinetChange('${role}')">Tukar Menteri</button>
     `;
     container.appendChild(card);
@@ -720,9 +819,9 @@ function renderArticles() {
   state.articles.forEach(a => {
     const card = document.createElement("div");
     card.className = "card";
-    card.style.background = "rgba(0,0,0,0.3)";
+    card.style.background = "rgba(10,15,29,0.5)";
     card.innerHTML = `
-      <h4 style="color:var(--accent); font-size:15px;">${a.title}</h4>
+      <h4 style="color:var(--accent-red); font-size:15px;">${a.title}</h4>
       <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Oleh <b>${a.author}</b> • ${a.date} • 👁 ${a.views} Pembaca • 👍 ${a.likes} Menyukai</div>
     `;
     list.appendChild(card);
@@ -1049,13 +1148,7 @@ function buyCrypto(type, price) {
 }
 
 function createCorp() {
-  const name = document.getElementById("corpName").value;
-  if (name && state.player.funds >= 100000) {
-    state.player.funds -= 100000;
-    showToast(`Pendaftaran Syarikat Awam '${name}' berjaya!`);
-    updateUI();
-    queueSave();
-  } else showToast("Sila masukkan nama & pastikan dana mencukupi!", true);
+  promptFoundCorporation();
 }
 
 function uploadLocalPortrait(e) {
