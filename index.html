@@ -1,1428 +1,727 @@
-/* ==========================================================================
-   POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
-   Game Engine & Application Logic ("A House Divided" Sleek Edition)
-   ========================================================================== */
-
-/* 34+ Million Real Malaysian Population & Registered Voter Breakdown */
-const MALAYSIA_POPULATION_STATS = {
-  totalPopulation: 34100000,
-  totalRegisteredVoters: 21180000,
-  voterDemographics: {
-    undi18: { label: "Pengundi Belia (Undi18 / Gen-Z)", share: 32, favor: "Reformist / Youth" },
-    rural: { label: "Pengundi Luar Bandar & Felda", share: 28, favor: "Conservatism / Islamism" },
-    urban: { label: "Pengundi Bandar & Suburb", share: 25, favor: "Social Democracy / Liberalism" },
-    business: { label: "Komuniti Perniagaan & Industri", share: 15, favor: "Free Market / Stability" }
-  }
-};
-
-/* Real Malaysian Corporations listed on Bursa Malaysia (KLSE) */
-const BURSA_MALAYSIA_CORPORATIONS = [
-  {
-    id: 1,
-    name: "PETRONAS Gas Berhad",
-    sector: "Energy",
-    sectorClass: "sector-energy",
-    exchange: "Bursa Main",
-    price: 18.50,
-    dividend: 0.85, // MYR Dividend per share / day
-    owned: 200,     // Starting owned shares
-    mktCap: "MYR 36.6B",
-    dailyRev: "+MYR 8.5M/d",
-    logo: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b2?w=100&auto=format&fit=crop",
-    progress: 85
-  },
-  {
-    id: 2,
-    name: "Maybank Berhad",
-    sector: "Banking",
-    sectorClass: "sector-banking",
-    exchange: "Bursa Main",
-    price: 9.80,
-    dividend: 0.65,
-    owned: 500,
-    mktCap: "MYR 118.2B",
-    dailyRev: "+MYR 14.2M/d",
-    logo: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop",
-    progress: 92
-  },
-  {
-    id: 3,
-    name: "Sime Darby Plantation",
-    sector: "Agriculture",
-    sectorClass: "sector-retail",
-    exchange: "Bursa Main",
-    price: 4.30,
-    dividend: 0.35,
-    owned: 1000,
-    mktCap: "MYR 29.7B",
-    dailyRev: "+MYR 6.1M/d",
-    logo: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=100&auto=format&fit=crop",
-    progress: 70
-  },
-  {
-    id: 4,
-    name: "Tenaga Nasional Berhad",
-    sector: "Energy",
-    sectorClass: "sector-energy",
-    exchange: "Bursa Main",
-    price: 13.20,
-    dividend: 0.75,
-    owned: 100,
-    mktCap: "MYR 76.4B",
-    dailyRev: "+MYR 11.8M/d",
-    logo: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=100&auto=format&fit=crop",
-    progress: 88
-  },
-  {
-    id: 5,
-    name: "Skeedoo Real Estate MY",
-    sector: "Real Estate",
-    sectorClass: "sector-realestate",
-    exchange: "Bursa ACE",
-    price: 1.25,
-    dividend: 0.12,
-    owned: 2000,
-    mktCap: "MYR 12.5M",
-    dailyRev: "+MYR 450K/d",
-    logo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100&auto=format&fit=crop",
-    progress: 60
-  },
-  {
-    id: 6,
-    name: "Gamuda Infrastructure",
-    sector: "Manufacturing",
-    sectorClass: "sector-manufacturing",
-    exchange: "Bursa Main",
-    price: 6.10,
-    dividend: 0.45,
-    owned: 300,
-    mktCap: "MYR 16.5B",
-    dailyRev: "+MYR 3.9M/d",
-    logo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=100&auto=format&fit=crop",
-    progress: 75
-  }
-];
-
-/* Real Commodities Market (Malaysia Focus) */
-const MALAYSIAN_COMMODITIES = [
-  { name: "Crude Palm Oil (CPO)", unit: "Ton", price: "MYR 3,850", daily: "+MYR 120/d", sectorClass: "sector-retail" },
-  { name: "Petroleum (Brent Crude)", unit: "Barrel", price: "MYR 380", daily: "+MYR 14/d", sectorClass: "sector-energy" },
-  { name: "Rubber (SMR 20 Grade)", unit: "100kg", price: "MYR 720", daily: "+MYR 8/d", sectorClass: "sector-manufacturing" },
-  { name: "Tin (Bursa Tin Market)", unit: "Ton", price: "MYR 125,000", daily: "+MYR 1,500/d", sectorClass: "sector-banking" },
-  { name: "Gold (999 Physical Gold)", unit: "Gram", price: "MYR 345", daily: "+MYR 6/d", sectorClass: "sector-realestate" }
-];
-
-/* Real Malaysian Political Parties & Coalitions */
-const REAL_MALAYSIAN_PARTIES = [
-  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "Anwar Ibrahim", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
-  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "Muhyiddin Yassin", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
-  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "Ahmad Zahid Hamidi", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
-  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "Abang Johari Openg", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
-  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "Hajiji Noor", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
-  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "Shafie Apdal", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
-  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "Syed Saddiq", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
-];
-
-/* 14 Malaysian States/Territories */
-const STATE_SEATS = {
-  "Selangor": { seats: 56, pop: "7.2M", voters: "3.8M", mb: "Amirudin Shari (Selangor MB)", gov: "Pakatan Harapan (34 Kerusi)" },
-  "Johor": { seats: 56, pop: "4.1M", voters: "2.6M", mb: "Onn Hafiz Ghazi (Johor MB)", gov: "Barisan Nasional (40 Kerusi)" },
-  "Sabah": { seats: 73, pop: "3.4M", voters: "1.7M", mb: "Hajiji Noor (Sabah CM)", gov: "GRS Alliance (44 Kerusi)" },
-  "Sarawak": { seats: 82, pop: "2.9M", voters: "1.9M", mb: "Abang Johari Openg (Sarawak Premier)", gov: "GPS Alliance (76 Kerusi)" },
-  "Perak": { seats: 59, pop: "2.5M", voters: "1.6M", mb: "Saarani Mohamad (Perak MB)", gov: "Unity Alliance (33 Kerusi)" },
-  "Kedah": { seats: 36, pop: "2.2M", voters: "1.3M", mb: "Muhammad Sanusi Md Nor (Kedah MB)", gov: "Perikatan Nasional (33 Kerusi)" },
-  "Wilayah Persekutuan": { seats: 0, pop: "2.0M", voters: "1.1M", mb: "Ditadbir Persekutuan (Menteri WP)", gov: "Kerajaan Persekutuan" },
-  "Kelantan": { seats: 45, pop: "1.8M", voters: "1.2M", mb: "Mohd Nassuruddin Daud (Kelantan MB)", gov: "Perikatan Nasional (42 Kerusi)" },
-  "Pulau Pinang": { seats: 40, pop: "1.8M", voters: "1.2M", mb: "Chow Kon Yeow (Penang CM)", gov: "Pakatan Harapan (29 Kerusi)" },
-  "Pahang": { seats: 42, pop: "1.6M", voters: "1.0M", mb: "Wan Rosdy Wan Ismail (Pahang MB)", gov: "Barisan Nasional (24 Kerusi)" },
-  "Terengganu": { seats: 32, pop: "1.3M", voters: "0.9M", mb: "Ahmad Samsuri Mokhtar (Terengganu MB)", gov: "Perikatan Nasional (32 Kerusi)" },
-  "Negeri Sembilan": { seats: 36, pop: "1.2M", voters: "0.8M", mb: "Aminuddin Harun (N.Sembilan MB)", gov: "Pakatan Harapan (31 Kerusi)" },
-  "Melaka": { seats: 28, pop: "1.0M", voters: "0.7M", mb: "Ab Rauf Yusoh (Melaka CM)", gov: "Barisan Nasional (21 Kerusi)" },
-  "Perlis": { seats: 15, pop: "0.3M", voters: "0.2M", mb: "Mohd Shukri Ramli (Perlis MB)", gov: "Perikatan Nasional (14 Kerusi)" }
-};
-
-function majorityOf(seats) {
-  return seats > 0 ? Math.floor(seats / 2) + 1 : 0;
-}
-
-function defaultStates() {
-  const out = {};
-  for (const name in STATE_SEATS) {
-    out[name] = { 
-      seats: STATE_SEATS[name].seats, 
-      pop: STATE_SEATS[name].pop,
-      voters: STATE_SEATS[name].voters,
-      mb: STATE_SEATS[name].mb, 
-      gov: STATE_SEATS[name].gov 
-    };
-  }
-  return out;
-}
-
-function defaultGameState() {
-  return {
-    player: {
-      name: "Wan Luqman",
-      pp: 400.0,
-      funds: 1000000,
-      portrait: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop",
-      location: "Selangor / Malaysia",
-      partyPower: 220,
-      reputation: 75.0,
-      btc: 0,
-      bio: "Memacu reformasi ekonomi, kebajikan rakyat dan perpaduan nasional.",
-      partyName: "Pakatan Harapan (PH)",
-      ideology: "Islamism / Islamic Democracy",
-      role: "Perdana Menteri / Presiden Parti"
-    },
-    myTokPosts: [
-      { id: 1, title: "Ucapan Rasmi Perdana Menteri Mengenai Bajet 2026 #MalaysiaMadani", author: "Wan Luqman", views: "1.2M", likes: "340K", shares: "45K", tags: "#PolitikMY #DewanRakyat" }
-    ],
-    sdnBhdList: [
-      { id: 1, name: "Sentral Gaming Malaysia Sdn Bhd", sector: "Gaming & Technology", val: "MYR 250,000", dailyDiv: "MYR 12,500/d" }
-    ],
-    cabinet: {
-      finance: "Rafizi Ramli (Menteri Kewangan)",
-      defense: "Mohamad Hasan (Menteri Pertahanan)",
-      home: "Saifuddin Nasution (Menteri Dalam Negeri)",
-      education: "Fadhlina Sidek (Menteri Pendidikan)",
-      health: "Dzulkefly Ahmad (Menteri Kesihatan)",
-      foreign: "Zambry Abdul Kadir (Menteri Luar Negeri)"
-    },
-    sprmAudit: { status: "Bersih", risk: "Rendah", activeInvestigations: 0 },
-    pdrmStatus: { orderLevel: "Aman", riotRisk: "Rendah", officersDeployed: 12000 },
-    articles: [
-      { title: "Pelan Pembangunan Ekonomi Digital Selangor 2026", author: "Wan Luqman", date: "2 jam lepas", views: 4250, likes: 890 }
-    ],
-    chatMessages: [
-      { sender: "Sistem", text: "Selamat datang ke Server Geopolitik & Bursa Malaysia!" }
-    ],
-    corporations: JSON.parse(JSON.stringify(BURSA_MALAYSIA_CORPORATIONS)),
-    parties: JSON.parse(JSON.stringify(REAL_MALAYSIAN_PARTIES)),
-    states: defaultStates(),
-    lobbies: [
-      { group: "PETRONAS Energy & Petroleum", head: "Dato' Azman", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 120, natStr: 95, rel: 65 },
-      { group: "Palm Oil & Plantation Guild (MPOB)", head: "Tan Sri Lim", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", stateStr: 90, natStr: 85, rel: 55 },
-      { group: "Banking & Islamic Finance Consortium", head: "Tengku Zafrul", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 110, natStr: 90, rel: 60 }
-    ],
-    bills: [
-      { code: "RUU.2020: Pakej Rangsangan Ekonomi", law: "Dana Bantuan Perniagaan & Infrastruktur", ayes: 118, nays: 90, abstentions: 14, author: "Wan Luqman", timer: "23 jam" },
-      { code: "RUU.2021: Akta Cukai E-Dagang & Teknologi", law: "Kerangka Perlesenan Ekonomi Digital", ayes: 112, nays: 98, abstentions: 12, author: "Jawatankuasa Dewan", timer: "12 jam" }
-    ],
-    roster: [
-      { name: "Wan Luqman (Anda)", power: 220, inf: 85, role: "Pengerusi / Presiden Parti" },
-      { name: "Syed Saddiq", power: 180, inf: 70, role: "Ketua Pemuda" },
-      { name: "Rafizi Ramli", power: 150, inf: 65, role: "Pengarah Ekonomi" }
-    ],
-    spectrum: ["Extremely Left Wing", "Very Left Wing", "Left Wing", "Center Left", "Centrist", "Center Right", "Right Wing", "Extremely Right Wing"],
-    econPos: 4,
-    socialPos: 5,
-    selectedState: "Selangor",
-    stockSubTab: "listings"
-  };
-}
-
-let state = defaultGameState();
-let currentUser = null;
-let lastMidnightReset = null;
-let saveTimer = null;
-
-/* Boot & Auth Handling */
-window.addEventListener("DOMContentLoaded", async () => {
-  const forceDismissTimeout = setTimeout(() => {
-    const bootLoader = document.getElementById("bootLoader");
-    if (bootLoader && bootLoader.style.display !== "none") {
-      console.warn("Supabase network timeout reached. Falling back to local auth modal.");
-      bootLoader.style.display = "none";
-      document.getElementById("authModal").style.display = "flex";
-    }
-  }, 2500);
-
-  try {
-    if (sb && sb.auth) {
-      const { data, error } = await sb.auth.getSession();
-      if (data && data.session && data.session.user) {
-        currentUser = data.session.user;
-        clearTimeout(forceDismissTimeout);
-        await routeAfterAuth();
-        return;
-      }
-    }
-  } catch (err) {
-    console.warn("Supabase session check error:", err);
-  }
-
-  clearTimeout(forceDismissTimeout);
-  document.getElementById("bootLoader").style.display = "none";
-  document.getElementById("authModal").style.display = "flex";
-});
-
-async function routeAfterAuth() {
-  document.getElementById("authModal").style.display = "none";
-  setBtnLoading("loginBtn", false, "⚡ Log Masuk Ke Server Game");
-  setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
-
-  try {
-    if (sb && currentUser) {
-      const { data: profile } = await sb.from("player_profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
-
-      if (!profile) {
-        document.getElementById("bootLoader").style.display = "none";
-        document.getElementById("setupScreen").style.display = "block";
-        document.getElementById("charName").value = currentUser.email.split("@")[0];
-        return;
-      }
-
-      const { data: gs } = await sb.from("game_state").select("*").eq("user_id", currentUser.id).maybeSingle();
-
-      state = defaultGameState();
-      state.player.name = profile.character_name;
-      state.player.partyName = profile.party_name;
-      state.player.ideology = profile.ideology;
-      state.player.bio = profile.bio || state.player.bio;
-      state.player.portrait = profile.portrait_url || state.player.portrait;
-      state.player.location = (profile.base_state || "Selangor") + " / Malaysia";
-      state.selectedState = profile.base_state || "Selangor";
-
-      if (gs) {
-        state.player.pp = Number(gs.political_power);
-        state.player.funds = Number(gs.liquid_capital);
-        state.player.partyPower = Number(gs.party_power);
-        state.player.reputation = Number(gs.reputation);
-        state.player.btc = Number(gs.btc);
-        state.econPos = gs.econ_position;
-        state.socialPos = gs.social_position;
-        if (gs.parties) state.parties = gs.parties;
-        if (gs.states) state.states = gs.states;
-        if (gs.lobbies) state.lobbies = gs.lobbies;
-        if (gs.bills) state.bills = gs.bills;
-        if (gs.roster) state.roster = gs.roster;
-        if (gs.cabinet) state.cabinet = gs.cabinet;
-        if (gs.articles) state.articles = gs.articles;
-        if (gs.corporations) state.corporations = gs.corporations;
-        if (gs.sdnBhdList) state.sdnBhdList = gs.sdnBhdList;
-        if (gs.myTokPosts) state.myTokPosts = gs.myTokPosts;
-        lastMidnightReset = gs.last_midnight_reset;
-      }
-    }
-  } catch (err) {
-    console.warn("DB route load fallback:", err);
-  }
-
-  document.getElementById("bootLoader").style.display = "none";
-  document.getElementById("dashboardScreen").style.display = "block";
-  document.getElementById("mainHeader").style.display = "flex";
-  document.getElementById("mainFooter").style.display = "flex";
-
-  applyCatchUpMidnightResets();
-  startMYTMidnightClock();
-  start1WeekElectionCountdown();
-  startLivingStockEngine();
-  updateUI();
-  showToast(`Selamat kembali, ${state.player.name}! 400 PP & MYR 1 Million sedia.`);
-}
-
-function setBtnLoading(id, loading, label) {
-  const btn = document.getElementById(id);
-  if (!btn) return;
-  btn.disabled = loading;
-  btn.innerHTML = loading ? '<span class="spinner"></span> Sila tunggu...' : label;
-}
-
-function showAuthError(msg) {
-  const el = document.getElementById("authError");
-  el.innerText = msg;
-  el.style.display = "block";
-}
-function hideAuthError() {
-  document.getElementById("authError").style.display = "none";
-}
-
-function switchAuthTab(type) {
-  hideAuthError();
-  document.querySelectorAll('.auth-tab-btn').forEach(btn => btn.classList.remove('active'));
-  if (type === 'login') {
-    document.getElementById('tabLoginBtn').classList.add('active');
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-  } else {
-    document.getElementById('tabRegisterBtn').classList.add('active');
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-  }
-}
-
-async function handleAuth(e) {
-  e.preventDefault();
-  hideAuthError();
-  const email = document.getElementById("authEmail").value;
-  const password = document.getElementById("authPass").value;
-
-  if (sb && sb.auth) {
-    setBtnLoading("loginBtn", true);
-    try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) {
-        setBtnLoading("loginBtn", false, "⚡ Log Masuk Ke Server Game");
-        return showAuthError(error.message);
-      }
-      currentUser = data.user;
-      await routeAfterAuth();
-      return;
-    } catch (err) {
-      console.warn("Supabase auth fallback:", err);
-    }
-  }
-
-  currentUser = { id: "local_user", email: email };
-  document.getElementById("authModal").style.display = "none";
-  document.getElementById("setupScreen").style.display = "block";
-  document.getElementById("charName").value = email.split("@")[0];
-}
-
-async function handleRegister(e) {
-  e.preventDefault();
-  hideAuthError();
-  const email = document.getElementById("regEmail").value;
-  const password = document.getElementById("regPass").value;
-  const username = document.getElementById("regUsername").value;
-
-  if (sb && sb.auth) {
-    setBtnLoading("registerBtn", true);
-    try {
-      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
-      if (error) {
-        setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
-        return showAuthError(error.message);
-      }
-      if (!data.session) {
-        setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
-        showAuthError("Akaun dicipta! Sila semak emel anda untuk sahkan akaun atau log masuk.");
-        switchAuthTab('login');
-        document.getElementById("authEmail").value = email;
-        return;
-      }
-      currentUser = data.user;
-      await routeAfterAuth();
-      return;
-    } catch (err) {
-      console.warn("Supabase register fallback:", err);
-    }
-  }
-
-  currentUser = { id: "local_user", email: email };
-  document.getElementById("authModal").style.display = "none";
-  document.getElementById("setupScreen").style.display = "block";
-  document.getElementById("charName").value = username || email.split("@")[0];
-}
-
-async function logoutPlayer() {
-  try {
-    if (sb && sb.auth) await sb.auth.signOut();
-  } catch (err) {}
-  location.reload();
-}
-
-async function initGame(e) {
-  e.preventDefault();
-  setBtnLoading("startGameBtn", true);
-  const name = document.getElementById("charName").value;
-  const baseState = document.getElementById("startNation").value;
-  const selectedPartyChoice = document.getElementById("partySelect").value;
-  const customPartyName = document.getElementById("partyNameCustom").value;
-  const ideology = document.getElementById("partyIdeology").value;
-
-  state = defaultGameState();
-  state.player.name = name;
-  state.player.location = baseState + " / Malaysia";
-  state.player.ideology = ideology;
-  state.selectedState = baseState;
-
-  if (selectedPartyChoice === "custom") {
-    state.player.partyName = customPartyName || "Gabungan Reformasi Rakyat";
-    state.parties.unshift({
-      id: "player_party",
-      name: state.player.partyName,
-      logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg",
-      color: "#38bdf8",
-      seats: 15,
-      polling: 8.5,
-      leader: `${name} (Anda)`,
-      ideology: ideology,
-      discord: "https://discord.gg/parti-saya"
-    });
-  } else {
-    const targetParty = state.parties.find(p => p.id === selectedPartyChoice);
-    if (targetParty) {
-      state.player.partyName = targetParty.name;
-      targetParty.leader = `${name} (Anda)`;
-    }
-  }
-
-  try {
-    if (sb && currentUser && currentUser.id !== "local_user") {
-      await sb.from("player_profiles").upsert({
-        user_id: currentUser.id,
-        username: currentUser.email.split("@")[0],
-        character_name: name,
-        party_name: state.player.partyName,
-        ideology: ideology,
-        bio: state.player.bio,
-        portrait_url: state.player.portrait,
-        base_state: baseState,
-        updated_at: new Date().toISOString()
-      });
-      await sb.from("game_state").upsert(buildGameStateRow());
-      lastMidnightReset = new Date().toISOString();
-    }
-  } catch (err) {
-    console.warn("DB init save fallback:", err);
-  }
-
-  document.getElementById("setupScreen").style.display = "none";
-  document.getElementById("dashboardScreen").style.display = "block";
-  document.getElementById("mainHeader").style.display = "flex";
-  document.getElementById("mainFooter").style.display = "flex";
-
-  startMYTMidnightClock();
-  start1WeekElectionCountdown();
-  startLivingStockEngine();
-  updateUI();
-  showToast(`Selamat datang ${state.player.name}! Bermula dengan 400 PP & MYR 1,000,000 modal kempen.`);
-}
-
-/* Living Stock Market Price Fluctuation Loop */
-function startLivingStockEngine() {
-  setInterval(() => {
-    state.corporations.forEach(c => {
-      const delta = (Math.random() * 0.4 - 0.18);
-      c.price = Math.max(0.20, Number((c.price + delta).toFixed(2)));
-    });
-    renderStockMarketList();
-  }, 4000);
-}
-
-function calculateTotalDailyDividends() {
-  let total = 0;
-  state.corporations.forEach(c => {
-    if (c.owned && c.owned > 0) {
-      total += (c.owned * (c.dividend || 0.50));
-    }
-  });
-  if (state.sdnBhdList) {
-    state.sdnBhdList.forEach(s => {
-      total += 10000;
-    });
-  }
-  return Math.round(total);
-}
-
-function calculateTotalStockPortfolioValue() {
-  let total = 0;
-  state.corporations.forEach(c => {
-    if (c.owned && c.owned > 0) {
-      total += (c.owned * c.price);
-    }
-  });
-  return Math.round(total);
-}
-
-function buildGameStateRow() {
-  return {
-    user_id: currentUser ? currentUser.id : "local_user",
-    political_power: state.player.pp,
-    liquid_capital: state.player.funds,
-    party_power: state.player.partyPower,
-    reputation: state.player.reputation,
-    btc: state.player.btc,
-    econ_position: state.econPos,
-    social_position: state.socialPos,
-    parties: state.parties,
-    states: state.states,
-    lobbies: state.lobbies,
-    bills: state.bills,
-    roster: state.roster,
-    cabinet: state.cabinet,
-    articles: state.articles,
-    corporations: state.corporations,
-    sdnBhdList: state.sdnBhdList,
-    myTokPosts: state.myTokPosts,
-    last_midnight_reset: lastMidnightReset || new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-}
-
-function queueSave() {
-  if (!sb || !currentUser || currentUser.id === "local_user") return;
-  const pill = document.getElementById("saveStatus");
-  if (pill) { pill.innerText = "Menyimpan..."; pill.className = "save-status saving"; }
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    try {
-      const { error } = await sb.from("game_state").upsert(buildGameStateRow());
-      if (pill) {
-        if (error) { pill.innerText = "Ralat simpan"; pill.className = "save-status error"; }
-        else { pill.innerText = "Tersimpan"; pill.className = "save-status saved"; }
-      }
-    } catch (err) {
-      if (pill) { pill.innerText = "Simpan lokal"; pill.className = "save-status saved"; }
-    }
-  }, 900);
-}
-
-async function saveProfileToDb() {
-  if (!sb || !currentUser || currentUser.id === "local_user") return;
-  try {
-    await sb.from("player_profiles").update({
-      character_name: state.player.name,
-      bio: document.getElementById("inputCharBio") ? document.getElementById("inputCharBio").value : state.player.bio,
-      portrait_url: state.player.portrait,
-      updated_at: new Date().toISOString()
-    }).eq("user_id", currentUser.id);
-  } catch (err) {}
-}
-
-function nowInMYT() {
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utc + (8 * 60 * 60000));
-}
-
-function applyCatchUpMidnightResets() {
-  if (!lastMidnightReset) { lastMidnightReset = nowInMYT().toISOString(); return; }
-  const last = new Date(lastMidnightReset);
-  const nowMyt = nowInMYT();
-  const lastUtc = last.getTime();
-  const lastMytCalc = new Date(lastUtc + 8 * 60 * 60000);
-  let daysPassed = Math.floor((nowMyt.setHours(0,0,0,0) - new Date(lastMytCalc).setHours(0,0,0,0)) / 86400000);
-
-  if (daysPassed > 0) {
-    const divs = calculateTotalDailyDividends() * daysPassed;
-    state.player.pp += 20.0 * daysPassed;
-    state.player.funds += (100000 * daysPassed) + divs;
-    showToast(`🌅 ${daysPassed} reset harian diproses: +${(20*daysPassed).toFixed(1)} PP, +MYR ${(100000*daysPassed).toLocaleString()} & +MYR ${divs.toLocaleString()} Dividen!`);
-  }
-  lastMidnightReset = new Date().toISOString();
-  queueSave();
-}
-
-function startMYTMidnightClock() {
-  setInterval(() => {
-    const mytDate = nowInMYT();
-    const nextMidnight = new Date(mytDate);
-    nextMidnight.setHours(24, 0, 0, 0);
-
-    const diffMs = nextMidnight - mytDate;
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-    const formatTwo = num => String(num).padStart(2, '0');
-    const el = document.getElementById("mytCountdown");
-    if (el) el.innerText = `${formatTwo(hours)}:${formatTwo(mins)}:${formatTwo(secs)}`;
-
-    if (hours === 0 && mins === 0 && secs === 0) {
-      executeDailyMidnightReset();
-    }
-  }, 1000);
-}
-
-function start1WeekElectionCountdown() {
-  setInterval(() => {
-    const now = new Date();
-    const weekMs = 7 * 24 * 60 * 60 * 1000;
-    const remainder = weekMs - (now.getTime() % weekMs);
-
-    const days = Math.floor(remainder / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((remainder % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((remainder % (1000 * 60 * 60)) / (1000 * 60));
-
-    const el = document.getElementById("weekElectionTimer");
-    if (el) el.innerText = `${days} Hari ${hours} Jam ${mins} Minit`;
-
-    if (days === 0 && hours === 0 && mins === 0) {
-      resetElectionCycle();
-    }
-  }, 10000);
-}
-
-function executeDailyMidnightReset() {
-  const divs = calculateTotalDailyDividends();
-  state.player.pp += 20.0;
-  state.player.funds += 100000 + divs;
-  lastMidnightReset = new Date().toISOString();
-  showToast(`🌅 RESET HARIAN MIDNIGHT: +20 PP, +MYR 100,000 & +MYR ${divs.toLocaleString()} Dividen Saham diterima!`);
-  updateUI();
-  queueSave();
-}
-
-function resetElectionCycle() {
-  state.parties.forEach(p => {
-    p.polling = (Math.random() * 25 + 10);
-    p.seats = Math.round(222 * (p.polling / 100));
-  });
-  showToast("🗳 1 WEEKS IRL ELECTION RESET: Parlimen dibubarkan & kerusi dikemaskini secara automatik!");
-  updateUI();
-  queueSave();
-}
-
-function postMYTokVideo() {
-  const title = document.getElementById("myTokTitleInput").value;
-  const tags = document.getElementById("myTokTagInput").value || "#MYTok #PolitikMY";
-
-  if (title) {
-    const randomViews = (Math.floor(Math.random() * 800) + 100) + "K";
-    const randomLikes = (Math.floor(Math.random() * 200) + 20) + "K";
-    state.myTokPosts.unshift({
-      id: Date.now(),
-      title: title,
-      author: state.player.name,
-      views: randomViews,
-      likes: randomLikes,
-      shares: "12K",
-      tags: tags
-    });
-    state.player.pp += 20;
-    state.player.funds += 15000;
-    document.getElementById("myTokTitleInput").value = "";
-    showToast("📱 Video MYTok tular! +20 PP & +MYR 15,000 sumbangan kempen!");
-    updateUI();
-    queueSave();
-  } else showToast("Sila masukkan tajuk video MYTok!", true);
-}
-
-function changePlayerParty(partyId) {
-  const target = state.parties.find(p => p.id === partyId);
-  if (target) {
-    state.player.partyName = target.name;
-    target.leader = `${state.player.name} (Anda)`;
-    showToast(`Beralih parti politik kepada ${target.name}!`);
-    updateUI();
-    queueSave();
-  }
-}
-
-function updatePlayerIdeologyInParties(newIdeology) {
-  state.player.ideology = newIdeology;
-  showToast(`Ideologi calon dikemaskini kepada: ${newIdeology}`);
-  updateUI();
-  queueSave();
-}
-
-function createSdnBhdCompany() {
-  const name = prompt("Masukkan nama Syarikat Sendirian Berhad (Sdn Bhd) baharu anda:", "Sentral Media Technology Sdn Bhd");
-  if (name && state.player.funds >= 25000) {
-    state.player.funds -= 25000;
-    state.sdnBhdList.unshift({
-      id: Date.now(),
-      name: name,
-      sector: "Perkhidmatan / Teknologi",
-      val: "MYR 250,000",
-      dailyDiv: "MYR 10,000/d"
-    });
-    showToast(`🏢 Syarikat '${name}' berjaya ditubuhkan! Dividen harian didaftarkan.`);
-    updateUI();
-    queueSave();
-  } else showToast("Diperlukan MYR 25,000 modal penubuhan Sdn Bhd!", true);
-}
-
-function buyCorporateShares(corpId) {
-  const corp = state.corporations.find(c => c.id === corpId);
-  if (!corp) return;
-  const qtyStr = prompt(`Berapa unit saham ${corp.name} mahu dibeli? (Harga: MYR ${corp.price.toFixed(2)}/unit, Dividen: MYR ${corp.dividend || 0.50}/unit/hari):`, "100");
-  const qty = parseInt(qtyStr);
-  if (qty && qty > 0) {
-    const cost = Math.round(qty * corp.price);
-    if (state.player.funds >= cost) {
-      state.player.funds -= cost;
-      corp.owned = (corp.owned || 0) + qty;
-      showToast(`Berjaya membeli ${qty} unit saham ${corp.name}! Dividen harian dijangka: +MYR ${Math.round(corp.owned * corp.dividend)}/hari.`);
-      updateUI();
-      queueSave();
-    } else showToast(`Modal Kas tidak mencukupi (Diperlukan MYR ${cost.toLocaleString()})!`, true);
-  }
-}
-
-function sellCorporateShares(corpId) {
-  const corp = state.corporations.find(c => c.id === corpId);
-  if (!corp || !corp.owned || corp.owned <= 0) {
-    showToast("Anda tiada pegangan saham dalam syarikat ini!", true);
-    return;
-  }
-  const qtyStr = prompt(`Berapa unit saham ${corp.name} mahu dijual? (Pegangan semasa: ${corp.owned} unit, Harga Pasaran: MYR ${corp.price.toFixed(2)}/unit):`, corp.owned.toString());
-  const qty = parseInt(qtyStr);
-  if (qty && qty > 0 && qty <= corp.owned) {
-    const totalCash = Math.round(qty * corp.price);
-    corp.owned -= qty;
-    state.player.funds += totalCash;
-    showToast(`Berjaya menjual ${qty} unit saham ${corp.name}! +MYR ${totalCash.toLocaleString()} diterima.`);
-    updateUI();
-    queueSave();
-  }
-}
-
-function updateCabinetMinister(role, name) {
-  if (state.cabinet) {
-    state.cabinet[role] = name;
-    showToast(`Kabinet dikemaskini: ${role.toUpperCase()} kini dipegang oleh ${name}`);
-    updateUI();
-    queueSave();
-  }
-}
-
-function publishArticle() {
-  const title = document.getElementById("articleTitleInput").value;
-  const content = document.getElementById("articleContentInput").value;
-  if (title && content) {
-    state.articles.unshift({
-      title: title,
-      author: state.player.name,
-      date: "Baru sahaja",
-      views: 120,
-      likes: 45
-    });
-    state.player.reputation = Math.min(100, state.player.reputation + 4.0);
-    state.player.pp += 10;
-    document.getElementById("articleTitleInput").value = "";
-    document.getElementById("articleContentInput").value = "";
-    showToast("📰 Artikel Politik Berjaya Diterbitkan! Reputasi & PP meningkat.");
-    updateUI();
-    queueSave();
-  } else showToast("Sila masukkan tajuk dan kandungan artikel!", true);
-}
-
-function sendChatMessage() {
-  const input = document.getElementById("chatInput");
-  if (input && input.value) {
-    state.chatMessages.push({
-      sender: state.player.name,
-      text: input.value
-    });
-    input.value = "";
-    renderChat();
-  }
-}
-
-function renderChat() {
-  const box = document.getElementById("publicChatBox");
-  if (!box) return;
-  box.innerHTML = "";
-  state.chatMessages.forEach(c => {
-    box.innerHTML += `<div class="log-item"><b style="color:var(--accent-red);">${c.sender}:</b> ${c.text}</div>`;
-  });
-  box.scrollTop = box.scrollHeight;
-}
-
-function triggerSPRMInvestigation() {
-  showToast("🔍 SPRM melancarkan audit aset & siasatan integriti!");
-  state.sprmAudit.activeInvestigations++;
-  updateUI();
-}
-
-function triggerPDRMSecurity() {
-  showToast("👮 PDRM mengetatkan kawalan keselamatan kawasan!");
-  updateUI();
-}
-
-function showToast(msg, isError) {
-  const banner = document.getElementById("toastBanner");
-  banner.innerText = msg;
-  banner.className = isError ? "error" : "";
-  banner.style.display = "block";
-  setTimeout(() => { banner.style.display = "none"; }, 3500);
-}
-
-function switchStockSubTab(tab) {
-  state.stockSubTab = tab;
-  document.getElementById("btnSubListings").className = tab === 'listings' ? 'sub-tab-btn active' : 'sub-tab-btn';
-  document.getElementById("btnSubCommodities").className = tab === 'commodities' ? 'sub-tab-btn active' : 'sub-tab-btn';
-  renderStockMarketList();
-}
-
-function renderStockMarketList() {
-  const container = document.getElementById("stockListContainer");
-  if (!container) return;
-  container.innerHTML = "";
-
-  if (state.stockSubTab === 'listings') {
-    state.corporations.forEach((c, idx) => {
-      const card = document.createElement("div");
-      card.className = "stock-item-card";
-      const ownedCnt = c.owned || 0;
-      const expectedDiv = Math.round(ownedCnt * (c.dividend || 0.50));
-      card.innerHTML = `
-        <div class="stock-left">
-          <div class="stock-rank">${idx + 1}</div>
-          <img src="${c.logo}" class="stock-avatar" alt="Corp">
-          <div class="stock-info">
-            <h4>${c.name}</h4>
-            <span class="sector-pill ${c.sectorClass}">${c.sector}</span>
-            <div class="stock-mktcap">MKT CAP <b>${c.mktCap}</b> • Pegangan: <b style="color:var(--success);">${ownedCnt} Unit</b> (Dividen: +MYR ${expectedDiv}/d)</div>
-          </div>
-        </div>
-        <div class="stock-right">
-          <div class="stock-price">MYR ${c.price.toFixed(2)}</div>
-          <div class="stock-daily">${c.exchange} ${c.dailyRev}</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${c.progress}%"></div></div>
-          <div style="display:flex; gap:6px; margin-top:8px;">
-            <button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="buyCorporateShares(${c.id})">Beli Saham</button>
-            <button class="btn-warning" style="padding:4px 10px; font-size:11px;" onclick="sellCorporateShares(${c.id})">Jual Saham</button>
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  } else {
-    MALAYSIAN_COMMODITIES.forEach((cm, idx) => {
-      const card = document.createElement("div");
-      card.className = "stock-item-card";
-      card.innerHTML = `
-        <div class="stock-left">
-          <div class="stock-rank">${idx + 1}</div>
-          <div class="stock-info">
-            <h4>${cm.name}</h4>
-            <span class="sector-pill ${cm.sectorClass}">Komoditi Malaysia</span>
-            <div class="stock-mktcap">Unit <b>${cm.unit}</b></div>
-          </div>
-        </div>
-        <div class="stock-right">
-          <div class="stock-price">${cm.price}</div>
-          <div class="stock-daily">${cm.daily}</div>
-          <button class="btn-green" style="margin-top:8px; padding:4px 10px; font-size:11px;" onclick="showToast('Pembelian unit komoditi ${cm.name} berjaya!')">Beli Komoditi</button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
-}
-
-function promptFoundCorporation() {
-  const name = prompt("Masukkan nama syarikat korporat baharu untuk disenaraikan di Bursa Malaysia:", "Genting Synergies Berhad");
-  if (name && state.player.funds >= 100000) {
-    state.player.funds -= 100000;
-    state.corporations.unshift({
-      id: Date.now(),
-      name: name,
-      sector: "Real Estate",
-      sectorClass: "sector-realestate",
-      exchange: "Bursa ACE",
-      price: 1.00,
-      dividend: 0.20,
-      owned: 5000,
-      mktCap: "MYR 10.0M",
-      dailyRev: "+MYR 200K/d",
-      logo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100&auto=format&fit=crop",
-      progress: 50
-    });
-    showToast(`🏢 Syarikat Awam '${name}' berjaya disenaraikan di Bursa Malaysia! 5000 unit saham dipegang.`);
-    updateUI();
-    queueSave();
-  } else showToast("Sila pastikan dana mencukupi (MYR 100,000 required)!", true);
-}
-
-function updateUI() {
-  document.getElementById("navPlayerName").innerText = state.player.name;
-  document.getElementById("bottomPlayerName").innerText = state.player.name;
-  document.getElementById("profileTitle").innerText = state.player.name;
-  document.getElementById("barPower").innerText = state.player.pp.toFixed(1);
-  document.getElementById("barFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
-  if (document.getElementById("btcHoldings")) {
-    document.getElementById("btcHoldings").innerText = state.player.btc;
-  }
-
-  if (document.getElementById("inputCharName")) {
-    document.getElementById("inputCharName").value = state.player.name;
-  }
-  if (document.getElementById("inputLocation")) {
-    document.getElementById("inputLocation").value = state.player.location;
-  }
-
-  populateStateSelect();
-  renderPartiesAndCandidates();
-  renderLobbies();
-  renderBills();
-  renderRoster();
-  renderMBRoster();
-  renderCabinet();
-  renderArticles();
-  renderChat();
-  renderMYTokPosts();
-  renderStockMarketList();
-  renderSdnBhdList();
-  loadStateDUN(state.selectedState);
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POWER - Malaysia Geopolitics, Stock Exchange & MYTok Simulator</title>
   
-  if (document.getElementById("econSlider")) {
-    document.getElementById("econSlider").value = state.econPos;
-    document.getElementById("socialSlider").value = state.socialPos;
-    document.getElementById("lblEconPos").innerText = state.spectrum[state.econPos - 1];
-    document.getElementById("lblSocialPos").innerText = state.spectrum[state.socialPos - 1];
-  }
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
-  const portVal = calculateTotalStockPortfolioValue();
-  const dailyDivs = calculateTotalDailyDividends();
+<!-- TOP TICKER TAPE (Bursa Malaysia Stocks & Commodities) -->
+<div class="ticker-tape">
+  <div class="ticker-content">
+    <div class="ticker-item"><span>PETRONAS Gas</span><span class="ticker-green">MYR 18.50 +MYR 897K</span></div>
+    <div class="ticker-item"><span>Maybank Berhad</span><span class="ticker-green">MYR 9.80 +MYR 209K</span></div>
+    <div class="ticker-item"><span>Sime Darby</span><span class="ticker-green">MYR 4.30 +MYR 80K</span></div>
+    <div class="ticker-item"><span>Tenaga Nasional</span><span class="ticker-green">MYR 13.20 +MYR 340K</span></div>
+    <div class="ticker-item"><span>Crude Palm Oil (CPO)</span><span class="ticker-green">MYR 3,850/Ton +MYR 120</span></div>
+    <div class="ticker-item"><span>Gamuda Berhad</span><span class="ticker-green">MYR 6.10 +MYR 150K</span></div>
+  </div>
+</div>
 
-  if (document.getElementById("portFunds")) document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
-  if (document.getElementById("portBtc")) document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
-  if (document.getElementById("portStockVal")) document.getElementById("portStockVal").innerText = `MYR ${portVal.toLocaleString()}`;
-  if (document.getElementById("portDailyDiv")) document.getElementById("portDailyDiv").innerText = `+MYR ${dailyDivs.toLocaleString()}/hari`;
-}
+<!-- BOOT LOADER -->
+<div id="bootLoader">
+  <div class="spinner"></div>
+  <p>Menyambung ke server permainan...</p>
+</div>
 
-function renderMYTokPosts() {
-  const container = document.getElementById("myTokContainer");
-  if (!container || !state.myTokPosts) return;
-  container.innerHTML = "";
-  state.myTokPosts.forEach(post => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.background = "rgba(10, 15, 29, 0.6)";
-    card.style.borderLeft = "4px solid var(--accent-red)";
-    card.innerHTML = `
-      <div style="font-size:11px; color:var(--accent-red); font-weight:bold;">📱 MYTok Viral Video</div>
-      <h4 style="color:#fff; font-size:15px; margin-top:2px;">${post.title}</h4>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Oleh <b>${post.author}</b> • 👁 ${post.views} Tontonan • ❤️ ${post.likes} • 🔄 ${post.shares} Perkongsian</div>
-      <div style="font-size:11px; color:var(--accent-blue); margin-top:4px;">${post.tags}</div>
-    `;
-    container.appendChild(card);
-  });
-}
+<!-- SCREEN 1: GLASSMORPHISM LOGIN / REGISTER MODAL -->
+<div id="authModal" style="display:none;">
+  <div class="auth-box">
+    <div class="auth-header">
+      <h2>🌐 Portal Geopolitik Malaysia</h2>
+      <p>Akaun Multiplayer Parlimen & DUN Negeri Simulator</p>
+    </div>
 
-function renderSdnBhdList() {
-  const container = document.getElementById("sdnBhdContainer");
-  if (!container || !state.sdnBhdList) return;
-  container.innerHTML = "";
-  state.sdnBhdList.forEach(s => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.background = "rgba(10,15,29,0.5)";
-    card.innerHTML = `
-      <h4 style="color:var(--accent-red); font-size:15px;">${s.name}</h4>
-      <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
-        Sektor: <b>${s.sector}</b> • Nilai: <b style="color:var(--success);">${s.val}</b> • Dividen: <b>${s.dailyDiv}</b>
+    <div class="auth-error" id="authError"></div>
+
+    <!-- Toggle Tabs -->
+    <div class="auth-tabs">
+      <div class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">🔑 Log Masuk</div>
+      <div class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">📝 Daftar Akaun</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" onsubmit="handleAuth(event)">
+      <div class="form-group">
+        <label>Email Akaun</label>
+        <input type="email" id="authEmail" required placeholder="nama@email.com">
       </div>
-    `;
-    container.appendChild(card);
-  });
-}
+      <div class="form-group">
+        <label>Kata Laluan (Password)</label>
+        <input type="password" id="authPass" required placeholder="Masukkan Kata Laluan">
+      </div>
+      <button type="submit" class="btn-primary" id="loginBtn" style="width: 100%; margin-top: 10px; padding: 12px;">⚡ Log Masuk Ke Server Game</button>
+    </form>
 
-function renderCabinet() {
-  const container = document.getElementById("cabinetListContainer");
-  if (!container || !state.cabinet) return;
-  container.innerHTML = "";
-  for (const [role, ministerName] of Object.entries(state.cabinet)) {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.background = "rgba(10,15,29,0.5)";
-    card.style.padding = "12px";
-    card.innerHTML = `
-      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">${role.toUpperCase()}</div>
-      <div style="font-size:14px; font-weight:bold; color:var(--accent-red); margin-top:2px;">${ministerName}</div>
-      <button class="btn-blue" style="margin-top:8px; width:100%; padding:4px 8px; font-size:11px;" onclick="promptCabinetChange('${role}')">Tukar Menteri</button>
-    `;
-    container.appendChild(card);
-  }
-}
+    <!-- REGISTER FORM -->
+    <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label>Nama Pemain / Username</label>
+        <input type="text" id="regUsername" required placeholder="e.g. Wan Luqman">
+      </div>
+      <div class="form-group">
+        <label>Email Baru</label>
+        <input type="email" id="regEmail" required placeholder="nama@email.com">
+      </div>
+      <div class="form-group">
+        <label>Cipta Kata Laluan</label>
+        <input type="password" id="regPass" required minlength="6" placeholder="Minimum 6 aksara">
+      </div>
+      <button type="submit" class="btn-success" id="registerBtn" style="width: 100%; margin-top: 10px; padding: 12px;">✨ Cipta Akaun Baru</button>
+    </form>
+    <p class="auth-info">Data permainan disimpan automatik pada server (Supabase).</p>
+  </div>
+</div>
 
-function promptCabinetChange(role) {
-  const newName = prompt(`Masukkan nama baru untuk jawatan ${role.toUpperCase()}:`, state.cabinet[role]);
-  if (newName) {
-    updateCabinetMinister(role, newName);
-  }
-}
+<!-- TOP NAVBAR -->
+<header class="top-nav" id="mainHeader" style="display: none;">
+  <div class="nav-links">
+    <span class="nav-item active" onclick="switchTab('tabEconomy')">Bursa Malaysia</span>
+    <span class="nav-item" onclick="switchTab('tabMyTok')">📱 MYTok Feed</span>
+    <span class="nav-item" onclick="switchTab('tabFederal')">Dewan Rakyat (222)</span>
+    <span class="nav-item" id="navPlayerName" onclick="switchTab('tabProfile')">Pemain</span>
+    <span class="nav-item" onclick="switchTab('tabDemographics')">Demografi Pengundi (34M)</span>
+    <span class="nav-item" onclick="switchTab('tabSdnBhd')">Sdn Bhd</span>
+    <span class="nav-item" onclick="switchTab('tabCabinet')">Kabinet PM</span>
+    <span class="nav-item" onclick="switchTab('tabStateDUN')">Negeri / DUN (14) ▼</span>
+    <span class="nav-item" onclick="switchTab('tabMBRoster')">Menteri Besar Roster</span>
+    <span class="nav-item" onclick="switchTab('tabPortfolio')">Portfolio</span>
+    <span class="nav-item" onclick="switchTab('tabFinancial')">Kewangan</span>
+    <span class="nav-item" onclick="switchTab('tabInstitutions')">SPRM / SPR / PDRM</span>
+    <span class="nav-item" onclick="switchTab('tabMedia')">Media & Artikel</span>
+    <span class="nav-item" onclick="switchTab('tabPublicChat')">Public Chat</span>
+    <span class="nav-item" onclick="switchTab('tabParties')">Parties ▼</span>
+    <span class="nav-item" onclick="switchTab('tabLobbies')">Interest Groups</span>
+    <span class="nav-item" onclick="switchTab('tabActions')">Actions</span>
+  </div>
+  <div class="nav-links">
+    <span class="save-status" id="saveStatus">Tersimpan</span>
+    <span class="nav-item" onclick="switchTab('tabProfile')">Settings</span>
+    <span class="nav-item" onclick="logoutPlayer()">Logout</span>
+  </div>
+</header>
 
-function renderArticles() {
-  const list = document.getElementById("articlesListContainer");
-  if (!list || !state.articles) return;
-  list.innerHTML = "";
-  state.articles.forEach(a => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.style.background = "rgba(10,15,29,0.5)";
-    card.innerHTML = `
-      <h4 style="color:var(--accent-red); font-size:15px;">${a.title}</h4>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Oleh <b>${a.author}</b> • ${a.date} • 👁 ${a.views} Pembaca • 👍 ${a.likes} Menyukai</div>
-    `;
-    list.appendChild(card);
-  });
-}
+<div id="toastBanner">Action executed successfully!</div>
 
-function populateStateSelect() {
-  const sel = document.getElementById("stateSelect");
-  if (!sel) return;
-  if (sel.dataset.filled) { sel.value = state.selectedState; return; }
-  sel.innerHTML = "";
-  for (const [name, info] of Object.entries(state.states)) {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.innerText = info.seats > 0
-      ? `${name} (${info.seats} Kerusi | Pop: ${info.pop} | Voters: ${info.voters})`
-      : `${name} (Ditadbir Persekutuan)`;
-    sel.appendChild(opt);
-  }
-  sel.value = state.selectedState;
-  sel.dataset.filled = "1";
-}
+<div class="container">
 
-function renderPartiesAndCandidates() {
-  const tbody = document.getElementById("candidateTableBody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-
-  state.parties.sort((a, b) => b.seats - a.seats);
-  const leading = state.parties[0];
-
-  const pmEl = document.getElementById("pmStatus");
-  if (pmEl) pmEl.innerText = `YAB Perdana Menteri: ${leading.leader} (${leading.name} - ${leading.seats} Kerusi Dewan Rakyat)`;
-
-  state.parties.forEach((p, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${p.logo}" class="party-logo">
-          <span style="font-weight:bold; color:#38bdf8">${p.leader}</span>
+  <!-- SCREEN 2: CHARACTER SETUP -->
+  <div id="setupScreen" class="card" style="display: none; max-width: 800px; margin: 30px auto;">
+    <h2 style="color: var(--accent-red); margin-bottom: 16px; text-align: center;">Cipta Profil Calon & Ambil Alih Parti Politik Malaysia</h2>
+    <form onsubmit="initGame(event)">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Nama Calon Politikus</label>
+          <input type="text" id="charName" required>
         </div>
-      </td>
-      <td>
-        <span style="font-weight:600; color:${p.color || '#38bdf8'}">${p.name}</span>
-        <div style="font-size:10px; color:var(--text-muted);">${p.discord || 'Tiada Link Discord'}</div>
-      </td>
-      <td style="font-weight:bold;">${(p.seats * 15.2).toFixed(1)}</td>
-      <td>
-        <div style="font-weight:bold;">${p.polling.toFixed(1)}%</div>
-        <div style="font-size:11px; color:var(--text-muted);">${(p.seats * 35000).toLocaleString()} pengundi</div>
-      </td>
-      <td style="font-weight:bold; color:var(--success);">${p.seats} Kerusi</td>
-      <td>
-        <button class="btn-blue" onclick="campaignForParty(${idx})">📢 Kempen (10 PP, MYR 100k)</button>
-        <button class="btn-purple" onclick="takeoverParty(${idx})">👑 Ambil Alih Parti</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function campaignForParty(idx) {
-  if (state.player.pp >= 10 && state.player.funds >= 100000) {
-    state.player.pp -= 10;
-    state.player.funds -= 100000;
-    state.parties[idx].polling = Math.min(100, state.parties[idx].polling + 1.8);
-    state.parties[idx].seats = Math.min(222, state.parties[idx].seats + 3);
-
-    showToast(`Kempen dilancar untuk ${state.parties[idx].name}! Kerusi Dewan Rakyat meningkat.`);
-    updateUI();
-    queueSave();
-  } else {
-    showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 100,000!", true);
-  }
-}
-
-function takeoverParty(idx) {
-  if (state.player.pp >= 20) {
-    state.player.pp -= 20;
-    state.parties[idx].leader = `${state.player.name} (Anda)`;
-    state.player.partyName = state.parties[idx].name;
-    showToast(`Kepimpinan ${state.parties[idx].name} berjaya diambil alih oleh ${state.player.name}!`);
-    updateUI();
-    queueSave();
-  } else {
-    showToast("Memerlukan 20 PP untuk mengambil alih kepimpinan parti!", true);
-  }
-}
-
-function loadStateDUN(stateName) {
-  state.selectedState = stateName;
-  const s = state.states[stateName];
-  if (!s) return;
-  const titleEl = document.getElementById("stateTitle");
-  if (titleEl) titleEl.innerText = stateName === "Wilayah Persekutuan" ? "Wilayah Persekutuan (KL / Putrajaya / Labuan)" : `Dewan Undangan Negeri (DUN) ${stateName}`;
-  
-  const seatsEl = document.getElementById("stateTotalSeats");
-  if (seatsEl) seatsEl.innerText = s.seats > 0 ? `${s.seats} Kerusi` : "Tiada DUN";
-  
-  const majEl = document.getElementById("stateMajority");
-  if (majEl) majEl.innerText = s.seats > 0 ? `${majorityOf(s.seats)} Kerusi` : "N/A";
-  
-  const mbEl = document.getElementById("stateMB");
-  if (mbEl) mbEl.innerText = s.mb;
-  
-  const govEl = document.getElementById("stateGov");
-  if (govEl) govEl.innerText = s.gov;
-
-  const popEl = document.getElementById("statePopInfo");
-  if (popEl) popEl.innerText = `Populasi: ${s.pop || '2.0M'} | Pengundi Berdaftar: ${s.voters || '1.2M'}`;
-
-  const dunBody = document.getElementById("dunSeatTableBody");
-  if (!dunBody) return;
-  dunBody.innerHTML = "";
-  if (s.seats === 0) {
-    dunBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Wilayah Persekutuan tidak mempunyai DUN — ditadbir terus oleh Kerajaan Persekutuan.</td></tr>`;
-    return;
-  }
-  const sampleCount = Math.min(3, s.seats);
-  for (let i = 1; i <= sampleCount; i++) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>N.${i} Kawasan ${stateName}</td><td>ADUN Kawasan ${i}</td><td>${i <= majorityOf(s.seats) ? "Kerajaan Negeri" : "Pembangkang Negeri"}</td>`;
-    dunBody.appendChild(tr);
-  }
-}
-
-function campaignStateDUN() {
-  if (state.player.pp >= 10 && state.player.funds >= 50000) {
-    state.player.pp -= 10;
-    state.player.funds -= 50000;
-    showToast(`Kempen DUN ${state.selectedState} selesai! Unjuran kerusi DUN meningkat.`);
-    updateUI();
-    queueSave();
-  } else showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 50,000!", true);
-}
-
-function triggerPRNElection() {
-  if (state.states[state.selectedState]) {
-    showToast(`🗳 Pilihan Raya Negeri (PRN) ${state.selectedState} dilancarkan secara rasmi!`);
-    updateUI();
-    queueSave();
-  }
-}
-
-function renderMBRoster() {
-  const tbody = document.getElementById("mbRosterTableBody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  for (const [st, info] of Object.entries(state.states)) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="font-weight:bold; color:#38bdf8">${st}</td>
-      <td><b>${info.mb}</b></td>
-      <td>${info.gov}</td>
-      <td>${info.seats > 0 ? info.seats + " Kerusi" : "Tiada DUN"}</td>
-      <td><button class="btn-blue" onclick="switchTab('tabStateDUN'); loadStateDUN('${st}'); document.getElementById('stateSelect').value='${st}';">Semak DUN</button></td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
-
-function renderLobbies() {
-  const tbody = document.getElementById("lobbyTableBody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  state.lobbies.forEach((l, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="font-weight:bold; color:#f8fafc;">${l.group}</td>
-      <td>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${l.photo}" class="lobby-head-photo">
-          <span>${l.head}</span>
+        <div class="form-group">
+          <label>Negeri Tapak Politik (Base State)</label>
+          <select id="startNation">
+            <option value="Johor">Johor (DUN 56 Kerusi)</option>
+            <option value="Kedah">Kedah (DUN 36 Kerusi)</option>
+            <option value="Kelantan">Kelantan (DUN 45 Kerusi)</option>
+            <option value="Melaka">Melaka (DUN 28 Kerusi)</option>
+            <option value="Negeri Sembilan">Negeri Sembilan (DUN 36 Kerusi)</option>
+            <option value="Pahang">Pahang (DUN 42 Kerusi)</option>
+            <option value="Perak">Perak (DUN 59 Kerusi)</option>
+            <option value="Perlis">Perlis (DUN 15 Kerusi)</option>
+            <option value="Pulau Pinang">Pulau Pinang (DUN 40 Kerusi)</option>
+            <option value="Sabah">Sabah (DUN 73 Kerusi)</option>
+            <option value="Sarawak">Sarawak (DUN 82 Kerusi)</option>
+            <option value="Selangor" selected>Selangor (DUN 56 Kerusi)</option>
+            <option value="Terengganu">Terengganu (DUN 32 Kerusi)</option>
+            <option value="Wilayah Persekutuan">Wilayah Persekutuan (Ditadbir Persekutuan)</option>
+          </select>
         </div>
-      </td>
-      <td>${l.stateStr}</td>
-      <td>${l.natStr}</td>
-      <td style="color:#22c55e; font-weight:bold;">${l.rel}%</td>
-      <td>
-        <button class="btn-green" onclick="lobbyGroup(${idx})">Lobi Kumpulan (5 PP)</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+      </div>
 
-function lobbyGroup(idx) {
-  if (state.player.pp >= 5) {
-    state.player.pp -= 5;
-    state.lobbies[idx].rel = Math.min(100, state.lobbies[idx].rel + 8);
-    showToast(`Hubungan dengan ${state.lobbies[idx].group} meningkat kepada ${state.lobbies[idx].rel}%!`);
-    updateUI();
-    queueSave();
-  } else showToast("Memerlukan sekurang-kurangnya 5 PP!", true);
-}
+      <div class="grid-2" style="margin-top: 10px;">
+        <div class="form-group">
+          <label>Pilih Parti / Gabungan Politik Malaysia Sebenar</label>
+          <select id="partySelect" onchange="document.getElementById('partyNameCustomGroup').style.display = (this.value==='custom') ? 'block' : 'none';">
+            <option value="ph">Pakatan Harapan (PH)</option>
+            <option value="pn">Perikatan Nasional (PN)</option>
+            <option value="bn">Barisan Nasional (BN)</option>
+            <option value="gps">Gabungan Parti Sarawak (GPS)</option>
+            <option value="grs">Gabungan Rakyat Sabah (GRS)</option>
+            <option value="warisan">Parti Warisan (WARISAN)</option>
+            <option value="muda">Ikatan Demokratik Malaysia (MUDA)</option>
+            <option value="custom">+ Cipta Parti Politik Baharu Sendiri</option>
+          </select>
+        </div>
+        <div class="form-group" id="partyNameCustomGroup" style="display:none;">
+          <label>Nama Parti Baharu Anda</label>
+          <input type="text" id="partyNameCustom" value="Gabungan Reformasi Rakyat">
+        </div>
+        <div class="form-group">
+          <label>Fokus Ideologi Utama</label>
+          <select id="partyIdeology">
+            <option value="Islamism / Islamic Democracy">Islamism / Islamic Democracy (Islamisme & Syariah)</option>
+            <option value="Malay Nationalism / Ketuanan">Malay Nationalism (Ketuanan Melayu & Hak Bumiputera)</option>
+            <option value="Borneo Regional Autonomy">Borneo Regional Autonomy (Ketuanan Wilayah Sabah/Sarawak)</option>
+            <option value="Social Democracy">Social Democracy (Reformasi & Kebajikan Rakyat)</option>
+            <option value="Conservatism">Conservatism (Pembangunan Perniagaan & Kestabilan)</option>
+            <option value="Liberalism">Liberalism (Pasaran Bebas & Hak Awam)</option>
+          </select>
+        </div>
+      </div>
 
-function renderBills() {
-  const tbody = document.getElementById("billsTableBody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  state.bills.forEach((b, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="color:#38bdf8; font-weight:bold;">${b.code}</td>
-      <td>${b.law}</td>
-      <td style="color:#22c55e; font-weight:bold;">${b.ayes}</td>
-      <td style="color:#ef4444; font-weight:bold;">${b.nays}</td>
-      <td>${b.abstentions}</td>
-      <td>${b.author}</td>
-      <td>${b.timer}</td>
-      <td>
-        <button class="btn-green" onclick="voteBill(${idx}, 'aye')">Setuju</button>
-        <button class="btn-red" onclick="voteBill(${idx}, 'nay')">Bantah</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+      <button type="submit" class="btn-primary" id="startGameBtn" style="width: 100%; padding: 14px; margin-top: 15px; font-size: 14px;">🚀 Mula Kempen & Masuk Parlimen</button>
+    </form>
+  </div>
 
-function voteBill(idx, vote) {
-  if (vote === 'aye') state.bills[idx].ayes++;
-  if (vote === 'nay') state.bills[idx].nays++;
-  showToast(`Undian ${vote.toUpperCase()} dihantar untuk ${state.bills[idx].code} di Dewan Rakyat.`);
-  updateUI();
-  queueSave();
-}
+  <!-- SCREEN 3: MAIN DASHBOARD -->
+  <div id="dashboardScreen" style="display: none;">
 
-function renderRoster() {
-  const tbody = document.getElementById("partyRosterBody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  state.roster.forEach(r => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${r.name}</td><td>${r.power}</td><td>${r.inf}</td><td><b style="color:#38bdf8">${r.role}</b></td>`;
-    tbody.appendChild(tr);
-  });
-}
+    <!-- TAB 1: MYTOK VIRAL SOCIAL MEDIA FEED -->
+    <div id="tabMyTok" class="tab-page">
+      <div class="card">
+        <div class="market-header">
+          <div>
+            <h2 style="font-size: 22px; color: #fff;">📱 MYTok - Media Sosial Viral Politik</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Muat naik video pendek & kenyataan tular untuk menarik sokongan pengundi belia & Undi18</p>
+          </div>
+        </div>
 
-function runCeramahAction() {
-  if (state.player.pp >= 8 && state.player.funds >= 15000) {
-    state.player.pp -= 8;
-    state.player.funds -= 15000;
-    state.player.reputation = Math.min(100, state.player.reputation + 2.5);
-    showToast("📢 Ceramah Perdana & Jelajah Negeri selesai! Reputasi rakyat meningkat.");
-    updateUI();
-    queueSave();
-  } else showToast("Perlu 8 PP & MYR 15,000!", true);
-}
+        <div class="grid-2" style="margin-bottom:18px;">
+          <div>
+            <div class="form-group">
+              <label>Tajuk Video / Kenyataan Tular MYTok</label>
+              <input type="text" id="myTokTitleInput" placeholder="e.g. Pembentangan Manifesto Anak Muda 2026 #Undi18">
+            </div>
+            <div class="form-group">
+              <label>Hashtag / Kategori Video</label>
+              <input type="text" id="myTokTagInput" value="#MYTok #PolitikMY #Reformasi">
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="postMYTokVideo()">✨ Muat Naik Video MYTok (+20 PP & +MYR 15,000)</button>
+          </div>
+          <div>
+            <h3>Video MYTok Tular Semasa</h3>
+            <div id="myTokContainer">
+              <!-- Populated Dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function runSocialMediaCampaign() {
-  if (state.player.pp >= 12 && state.player.funds >= 25000) {
-    state.player.pp -= 12;
-    state.player.funds -= 25000;
-    showToast("📱 Kempen Media Sosial & Perang Persepsi berjaya dilancarkan!");
-    updateUI();
-    queueSave();
-  } else showToast("Perlu 12 PP & MYR 25,000!", true);
-}
+    <!-- TAB 2: STOCK MARKET & BURSA MALAYSIA ("A House Divided" Layout) -->
+    <div id="tabEconomy" class="tab-page" style="display:none;">
+      <div class="card">
+        <div class="market-header">
+          <div>
+            <h2 style="font-size: 22px; color: #fff;">Bursa Malaysia Stock Market</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Semua syarikat korporat terbitan awam & komoditi Malaysia</p>
+          </div>
+          <button class="btn-primary" onclick="promptFoundCorporation()">+ Found Corporation (MYR 100k)</button>
+        </div>
 
-function runCorporateLobbying() {
-  state.player.funds += 100000;
-  showToast("💼 Persidangan Lobi Korporat berjaya! +MYR 100,000 Dana Kempen diperoleh.");
-  updateUI();
-  queueSave();
-}
+        <div class="stats-grid-3">
+          <div class="stat-box">
+            <div class="stat-label">Terlibat (Listed)</div>
+            <div class="stat-value">12 Syarikat</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Jumlah Market Cap</div>
+            <div class="stat-value" style="color:var(--success);">MYR 236.4M</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Hasil Harian Pasaran</div>
+            <div class="stat-value" style="color:var(--accent-red);">MYR 7.9M/d</div>
+          </div>
+        </div>
 
-function convertCapital() {
-  const amt = parseInt(document.getElementById("convertAmount").value);
-  if (amt && state.player.funds >= amt) {
-    state.player.funds -= amt;
-    state.player.pp += Math.floor(amt / 10000);
-    showToast(`Penukaran MYR ${amt.toLocaleString()} kepada Dana Kempen berjaya! Reputasi meningkat.`);
-    updateUI();
-    queueSave();
-  } else showToast("Liquid Capital tidak mencukupi!", true);
-}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div class="sub-tabs">
+            <div class="sub-tab-btn active" id="btnSubListings" onclick="switchStockSubTab('listings')">Listings (6)</div>
+            <div class="sub-tab-btn" id="btnSubCommodities" onclick="switchStockSubTab('commodities')">Commodities (5)</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">SUSUN:</span>
+            <select style="width: 140px; padding: 4px 8px; font-size: 11px;">
+              <option>Market Cap ▼</option>
+              <option>Share Price</option>
+              <option>Income</option>
+              <option>Revenue</option>
+            </select>
+          </div>
+        </div>
 
-function runAttackAd() {
-  const targetIdx = document.getElementById("attackTarget").value;
-  if (state.player.pp >= 10 && state.player.funds >= 30000) {
-    state.player.pp -= 10;
-    state.player.funds -= 30000;
-    if (state.parties[targetIdx]) {
-      state.parties[targetIdx].polling = Math.max(0, state.parties[targetIdx].polling - 2.5);
-      showToast(`Iklan serangan dilancar terhadap ${state.parties[targetIdx].name}! Polling mereka menurun.`);
-    }
-    updateUI();
-    queueSave();
-  } else showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 30,000!", true);
-}
+        <!-- Corporate Stock Cards List -->
+        <div id="stockListContainer">
+          <!-- Populated Dynamically in app.js -->
+        </div>
+      </div>
+    </div>
 
-function updateIdeology(type, val) {
-  if (type === 'econ') { state.econPos = parseInt(val); document.getElementById("lblEconPos").innerText = state.spectrum[val - 1]; }
-  if (type === 'social') { state.socialPos = parseInt(val); document.getElementById("lblSocialPos").innerText = state.spectrum[val - 1]; }
-  showToast(`Spektrum politik dikemaskini kepada ${state.spectrum[val - 1]}!`);
-  queueSave();
-}
+    <!-- TAB 3: DEMOGRAFI PENGUNDI (34M POPULASI) -->
+    <div id="tabDemographics" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">👥 Demografi Pengundi & Populasi 34.1 Juta Rakyat Malaysia</div>
+        <div class="stats-grid-3" style="margin-bottom:18px;">
+          <div class="stat-box"><div class="stat-label">Jumlah Populasi</div><div class="stat-value" style="color:var(--accent-blue);">34,100,000</div></div>
+          <div class="stat-box"><div class="stat-label">Pengundi Berdaftar (SPR)</div><div class="stat-value" style="color:var(--success);">21,180,000</div></div>
+          <div class="stat-box"><div class="stat-label">Peratusan Keluar Undi</div><div class="stat-value" style="color:var(--warning);">78.4%</div></div>
+        </div>
 
-function campaignPartyChair() {
-  if (state.player.pp >= 10) {
-    state.player.pp -= 10;
-    state.player.partyPower += 25;
-    state.roster[0].power = state.player.partyPower;
-    showToast("Kempen Pengerusi Parti dilancar! Power parti meningkat.");
-    updateUI();
-    queueSave();
-  } else showToast("Memerlukan sekurang-kurangnya 10 PP!", true);
-}
+        <h3>Kelompok & Komuniti Pengundi Utama</h3>
+        <div class="grid-2" style="margin-top:12px;">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--accent-red);">Pengundi Belia (Undi18 / Gen-Z)</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">32% daripada total pengundi • Cenderung kepada Reformasi & Media Sosial</p>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--warning);">Pengundi Luar Bandar & Felda</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">28% daripada total pengundi • Cenderung kepada Islamisme & Ketuanan</p>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--accent-blue);">Pengundi Bandar & Suburb</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">25% daripada total pengundi • Cenderung kepada Ekonomi Progresif</p>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--success);">Komuniti Perniagaan & Industri</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">15% daripada total pengundi • Cenderung kepada Kestabilan Pasaran</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function buyStock(name, price) {
-  if (state.player.funds >= price) {
-    state.player.funds -= price;
-    showToast(`Pembelian unit saham ${name} berjaya!`);
-    updateUI();
-    queueSave();
-  } else showToast("Liquid Capital tidak mencukupi!", true);
-}
+    <!-- TAB 4: SENDIRIAN BERHAD (SDN BHD) PRIVATE COMPANIES -->
+    <div id="tabSdnBhd" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="market-header">
+          <div>
+            <h2 style="font-size:22px; color:#fff;">Syarikat Sendirian Berhad (Sdn Bhd)</h2>
+            <p style="font-size:12px; color:var(--text-muted);">Syarikat perniagaan persendirian pemain untuk dividends & modal kempen</p>
+          </div>
+          <button class="btn-green" onclick="createSdnBhdCompany()">+ Tubuh Syarikat Sdn Bhd (MYR 25k)</button>
+        </div>
 
-function buyCrypto(type, price) {
-  if (state.player.funds >= price) {
-    state.player.funds -= price;
-    state.player.btc++;
-    showToast(`Pembelian 1 unit ${type} berjaya!`);
-    updateUI();
-    queueSave();
-  } else showToast("Liquid Capital tidak mencukupi!", true);
-}
+        <div id="sdnBhdContainer">
+          <!-- Populated Dynamically -->
+        </div>
+      </div>
+    </div>
 
-function createCorp() {
-  promptFoundCorporation();
-}
+    <!-- TAB 5: PERINGKAT PERSEKUTUAN / DEWAN RAKYAT -->
+    <div id="tabFederal" class="tab-page" style="display: none;">
+      <div class="map-banner">
+        <h2 style="font-size: 24px; color: #fff;">🇲🇾 Peringkat Persekutuan: Dewan Rakyat (2020 Era)</h2>
+        <div class="election-badge">🗳 Kitaran PRU 1 Minggu IRL (Masa Tinggal: <span id="weekElectionTimer" style="color:#f8fafc;">6 Hari 23 Jam</span>)</div>
+        <div style="margin-top:10px;">
+          <button class="btn-purple" onclick="resetElectionCycle()">🗳 Mula Semula / Bubar Parlimen (Reset Election Cycle)</button>
+        </div>
+      </div>
 
-function uploadLocalPortrait(e) {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      state.player.portrait = evt.target.result;
-      document.getElementById("portraitPreview").src = state.player.portrait;
-      showToast("Foto calon berjaya dimuat naik!");
-      updateUI();
-      saveProfileToDb();
-      queueSave();
-    };
-    reader.readAsDataURL(file);
-  }
-}
+      <div class="card">
+        <div style="margin-bottom: 14px; font-size: 13px; color: var(--text-muted);">
+          Status Kerajaan Persekutuan: <b style="color:var(--success);" id="pmStatus">-</b>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Presiden / Pemimpin</th>
+              <th>Parti / Gabungan Sebenar</th>
+              <th>Kekuatan Kempen</th>
+              <th>Polling %</th>
+              <th>Unjuran Kerusi Dewan Rakyat</th>
+              <th>Tindakan Kempen</th>
+            </tr>
+          </thead>
+          <tbody id="candidateTableBody"></tbody>
+        </table>
+      </div>
+    </div>
 
-function updatePortraitUrl(url) {
-  if (url) {
-    state.player.portrait = url;
-    document.getElementById("portraitPreview").src = url;
-    showToast("URL gambar calon dikemaskini!");
-    updateUI();
-    saveProfileToDb();
-    queueSave();
-  }
-}
+    <!-- TAB 6: KABINET PERSEKUTUAN (PM CABINET APPOINTMENT) -->
+    <div id="tabCabinet" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">🇲🇾 Jemaah Menteri & Pelantikan Kabinet Persekutuan</div>
+        <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 16px;">Sebagai Perdana Menteri / Pemimpin Parti, anda boleh melantik Ahli Kabinet bagi memimpin kementerian persekutuan:</p>
+        <div class="grid-3" id="cabinetListContainer">
+          <!-- Populated Dynamically -->
+        </div>
+      </div>
+    </div>
 
-function updateCharName(val) {
-  if (val) {
-    state.player.name = val;
-    updateUI();
-  }
-}
+    <!-- TAB 7: PERINGKAT NEGERI / DUN (ALL 14) -->
+    <div id="tabStateDUN" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">🇲🇾 Peringkat Negeri: Dewan Undangan Negeri (DUN) — 14 Negeri/Wilayah</div>
+        <div style="margin-bottom: 16px;">
+          <label>Pilih Negeri Untuk Semakan DUN & Kerajaan Negeri:</label>
+          <select id="stateSelect" onchange="loadStateDUN(this.value)"></select>
+        </div>
 
-function saveProfile() {
-  state.player.name = document.getElementById("inputCharName").value;
-  state.player.bio = document.getElementById("inputCharBio").value;
-  updateUI();
-  saveProfileToDb();
-  queueSave();
-  showToast("Profil calon berjaya disimpan!");
-}
+        <div class="grid-2">
+          <div class="card" style="background: rgba(10, 15, 29, 0.5);">
+            <h3 style="color:var(--accent-red);" id="stateTitle">-</h3>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;" id="statePopInfo">Populasi: 7.2M | Pengundi: 3.8M</div>
+            <div style="font-size:13px; margin: 12px 0; line-height: 1.8;">
+              <div>• Jumlah Kerusi DUN: <b id="stateTotalSeats">-</b></div>
+              <div>• Majoriti Diperlukan: <b id="stateMajority">-</b></div>
+              <div>• Jawatan Menteri Besar / KM / Premier: <b id="stateMB" style="color:var(--success);">-</b></div>
+              <div>• Gabungan Pemerintah: <b id="stateGov">-</b></div>
+            </div>
+            <button class="btn-green" style="width:100%; margin-top:8px;" onclick="campaignStateDUN()">📢 Kempen Pilihan Raya DUN (10 PP / MYR 50,000)</button>
+            <button class="btn-purple" style="width:100%; margin-top:6px;" onclick="triggerPRNElection()">🗳 Lancar Pilihan Raya Negeri (PRN)</button>
+          </div>
 
-function switchTab(tabId) {
-  document.querySelectorAll('.tab-page').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById(tabId).style.display = 'block';
+          <div>
+            <h3>Senarai Kawasan DUN Negeri (Contoh)</h3>
+            <table>
+              <thead>
+                <tr><th>DUN</th><th>Ahli Dewan Undangan Negeri (ADUN)</th><th>Status</th></tr>
+              </thead>
+              <tbody id="dunSeatTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  if (tabId === 'tabPortfolio') {
-    updateUI();
-  }
-}
+    <!-- TAB 8: PARTIES, DISCORD LINKS & IDEOLOGY SWAP -->
+    <div id="tabParties" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Politik Dalaman Parti, Discord AGM & Penukaran Ideologi</div>
+        
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Beralih Parti Politik</h3>
+            <div class="form-group">
+              <label>Pilih Parti Utama Anda:</label>
+              <select onchange="changePlayerParty(this.value)">
+                <option value="ph">Pakatan Harapan (PH)</option>
+                <option value="pn">Perikatan Nasional (PN)</option>
+                <option value="bn">Barisan Nasional (BN)</option>
+                <option value="gps">Gabungan Parti Sarawak (GPS)</option>
+                <option value="grs">Gabungan Rakyat Sabah (GRS)</option>
+                <option value="warisan">Parti Warisan (WARISAN)</option>
+                <option value="muda">Ikatan Demokratik Malaysia (MUDA)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Tukar Ideologi Calon</h3>
+            <div class="form-group">
+              <label>Ideologi Utama:</label>
+              <select onchange="updatePlayerIdeologyInParties(this.value)">
+                <option value="Islamism / Islamic Democracy">Islamism / Islamic Democracy</option>
+                <option value="Malay Nationalism / Ketuanan">Malay Nationalism / Ketuanan Melayu</option>
+                <option value="Social Democracy">Social Democracy / Reformist</option>
+                <option value="Conservatism">Conservatism / Kestabilan</option>
+                <option value="Liberalism">Free Market Liberalism</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h3>Senarai Parti Politik & Pautan Discord / AGM</h3>
+        <table>
+          <thead>
+            <tr><th>Parti</th><th>Pemimpin</th><th>Ideologi</th><th>Pautan Discord / AGM</th><th>Tindakan</th></tr>
+          </thead>
+          <tbody id="partyRosterBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 9: MENTERI BESAR ROSTER (14 NEGERI/WILAYAH) -->
+    <div id="tabMBRoster" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Senarai Menteri Besar & Ketua Menteri Kesemua 14 Negeri/Wilayah</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Negeri</th>
+              <th>Menteri Besar / Ketua Menteri / Premier</th>
+              <th>Gabungan Pemerintah Negeri</th>
+              <th>Kerusi DUN</th>
+              <th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="mbRosterTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 10: TAB PORTFOLIO -->
+    <div id="tabPortfolio" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">💼 Portfolio Politikus & Aset Korporat</div>
+        <div class="grid-2">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Jawatan & Portfolio Kerajaan</h3>
+            <div style="font-size:13px; margin-top:10px; line-height:1.8;">
+              <div>• Jawatan Semasa: <b style="color:var(--accent-red);">Perdana Menteri / Presiden Parti</b></div>
+              <div>• Tapak Kawasan: <b>Selangor / Malaysia</b></div>
+              <div>• Reputasi Politik: <b style="color:var(--success);">75.0% Tinggi</b></div>
+              <div>• Sokongan Lobi Utama: <b>PETRONAS, Palm Oil Guild, Bank Negara</b></div>
+            </div>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Pegangan Aset & Pelaburan</h3>
+            <div style="font-size:13px; margin-top:10px; line-height:1.8;">
+              <div>• Liquid Capital (Kas): <b style="color:var(--success);" id="portFunds">MYR 1,000,000</b></div>
+              <div>• Pegangan Bitcoin (BTC): <b style="color:var(--warning);" id="portBtc">0 BTC</b></div>
+              <div>• Unit Saham PETRONAS: <b>500 Unit</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 11: TAB KEWANGAN (FINANCIAL DASHBOARD) -->
+    <div id="tabFinancial" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">📈 Penyata Kewangan Persekutuan & Modal Kempen</div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div class="stat-box"><div class="stat-label">Rizab Persekutuan</div><div class="stat-value" style="color:var(--success);">MYR 150B</div></div>
+          <div class="stat-box"><div class="stat-label">Hasil Cukai Pendapatan</div><div class="stat-value" style="color:var(--accent-blue);">MYR 35B/thn</div></div>
+          <div class="stat-box"><div class="stat-label">Hasil Cukai Korporat</div><div class="stat-value" style="color:var(--purple);">MYR 28B/thn</div></div>
+          <div class="stat-box"><div class="stat-label">Perbelanjaan Pembangunan</div><div class="stat-value" style="color:var(--warning);">MYR 45B/thn</div></div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <h3>Penukaran Liquid Capital Kepada Dana Kempen</h3>
+            <div class="form-group">
+              <label>Jumlah Penukaran (MYR):</label>
+              <input type="number" id="convertAmount" value="50000">
+            </div>
+            <button class="btn-green" style="width:100%;" onclick="convertCapital()">Tukar Dana (+Reputasi Politik)</button>
+          </div>
+          <div>
+            <h3>Lobi Dana Korporat</h3>
+            <button class="btn-primary" style="width:100%; margin-top:20px; padding:12px;" onclick="runCorporateLobbying()">💼 Minta Lobi Dana Korporat (+MYR 100,000)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 12: INSTITUSI KHAS: SPRM, SPR & PDRM -->
+    <div id="tabInstitutions" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">⚖️ Suruhanjaya Pilihan Raya (SPR), SPRM & PDRM</div>
+        <div class="grid-3">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3 style="color:var(--accent-blue);">Suruhanjaya Pilihan Raya (SPR)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Mengawal selia pilihan raya persekutuan & PRN negeri.</p>
+            <button class="btn-purple" style="width:100%;" onclick="resetElectionCycle()">🗳 Pembubaran Parlimen & Semakan Kerusi</button>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3 style="color:var(--danger);">SPRM (Anti-Rasuah)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Siasatan integriti & audit pengisytiharan harta.</p>
+            <button class="btn-danger" style="width:100%;" onclick="triggerSPRMInvestigation()">🔍 Lancar Audit Integriti SPRM</button>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3 style="color:var(--success);">Polis Diraja Malaysia (PDRM)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Ketenteraman awam & keselamatan negara.</p>
+            <button class="btn-primary" style="width:100%;" onclick="triggerPDRMSecurity()">👮 Kawalan Ketenteraman Awam PDRM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 13: MEDIA & ARTIKEL POLITIK -->
+    <div id="tabMedia" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">📰 Portal Media & Penulisan Artikel Politik</div>
+        <div class="grid-2">
+          <div>
+            <h3>Tulis & Terbit Artikel Baharu</h3>
+            <div class="form-group">
+              <label>Tajuk Artikel / Pengumuman Press Release</label>
+              <input type="text" id="articleTitleInput" placeholder="e.g. Pelan Induk Ekonomi Digital Selangor 2026">
+            </div>
+            <div class="form-group">
+              <label>Kandungan Artikel Politik</label>
+              <textarea id="articleContentInput" rows="4" placeholder="Tuliskan kenyataan akhbar atau pendirian politik anda di sini..."></textarea>
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="publishArticle()">✨ Terbit Artikel Ke Portal Berita (+Reputasi & PP)</button>
+          </div>
+          <div>
+            <h3>Artikel Diterbitkan</h3>
+            <div id="articlesListContainer">
+              <!-- Populated Dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 14: PUBLIC CHAT -->
+    <div id="tabPublicChat" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">💬 Live Public Chat Room Pemain</div>
+        <div class="game-log" id="publicChatBox" style="height: 250px;">
+          <!-- Populated Dynamically -->
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <input type="text" id="chatInput" placeholder="Tulis mesej kepada semua pemain dalam server...">
+          <button class="btn-primary" onclick="sendChatMessage()">Hantar Mesej</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 15: INTEREST GROUPS & LOBBIES -->
+    <div id="tabLobbies" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Konsortium & Kumpulan Kepentingan Industri Malaysia</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Kumpulan Industri</th>
+              <th>Wakil Konsortium</th>
+              <th>Kekuatan Negeri</th>
+              <th>Kekuatan Nasional</th>
+              <th>Hubungan Anda</th>
+              <th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="lobbyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 16: DEWAN RAKYAT LEGISLATION -->
+    <div id="tabSenate" class="tab-page" style="display: none;">
+      <div style="text-align: center; margin-bottom: 15px;">
+        <h2 style="font-size: 22px; margin-bottom: 8px;">Dewan Rakyat Legislative Chamber</h2>
+        <img src="https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&auto=format&fit=crop" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Kod RUU</th>
+              <th>Ringkasan Dasar / Akta</th>
+              <th>Setuju</th>
+              <th>Bantah</th>
+              <th>Berkecuali</th>
+              <th>Penggubal</th>
+              <th>Masa Mengundi</th>
+              <th>Undi</th>
+            </tr>
+          </thead>
+          <tbody id="billsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 17: PROFILE & PORTRAIT UPLOAD -->
+    <div id="tabProfile" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title" id="profileTitle">-</div>
+        <div class="profile-grid">
+          <div class="portrait-upload-box">
+            <img id="portraitPreview" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop" class="profile-photo-preview" alt="Foto Calon">
+            <label>Muat Naik Foto Calon Anda:</label>
+            <input type="file" id="portraitFileInput" accept="image/*" onchange="uploadLocalPortrait(event)" style="margin-top: 6px; font-size: 11px;">
+            <div style="margin: 8px 0; font-size: 11px; color: var(--text-muted);">- ATAU Tampal URL Gambar -</div>
+            <input type="text" id="portraitUrlInput" placeholder="https://..." onchange="updatePortraitUrl(this.value)" style="font-size: 11px;">
+          </div>
+
+          <div>
+            <div class="form-group">
+              <label>Nama Calon Politikus:</label>
+              <input type="text" id="inputCharName" onchange="updateCharName(this.value)">
+            </div>
+            <div class="form-group">
+              <label>Biografi & Visi Politik:</label>
+              <textarea id="inputCharBio" rows="3">Memacu reformasi ekonomi, kebajikan rakyat dan perpaduan nasional.</textarea>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Tapak Kawasan:</label>
+                <input type="text" id="inputLocation" readonly>
+              </div>
+              <div class="form-group">
+                <label>Penyokong Industri:</label>
+                <input type="text" readonly value="PETRONAS, Persatuan Sawit, Konsortium Perbankan">
+              </div>
+            </div>
+            <button class="btn-green" onclick="saveProfile()">Simpan Profil Calon</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 18: ACTIONS & ATTACK ADS -->
+    <div id="tabActions" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Pusat Tindakan & Strategi Kempen Politik</div>
+        <div class="grid-3" style="margin-bottom: 20px;">
+          <button class="btn-primary" style="padding:14px;" onclick="runCeramahAction()">📢 Ceramah Perdana & Jelajah Negeri (8 PP / MYR 15,000)</button>
+          <button class="btn-purple" style="padding:14px;" onclick="runSocialMediaCampaign()">📱 Kempen Media Sosial & Perang Persepsi (12 PP / MYR 25,000)</button>
+          <button class="btn-green" style="padding:14px;" onclick="runCorporateLobbying()">💼 Persidangan Lobi Korporat (+MYR 100,000 Dana)</button>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>Penukaran Liquid Capital Kepada Dana Kempen</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Tukar dana peribadi kepada dana kempen untuk meningkatkan reputasi:</p>
+            <div class="form-group">
+              <label>Jumlah Penukaran (MYR):</label>
+              <input type="number" id="convertAmount" value="50000">
+            </div>
+            <button class="btn-green" style="width:100%;" onclick="convertCapital()">Tukar Dana (+Reputasi Politik)</button>
+          </div>
+
+          <div>
+            <h3>Iklan Serangan & Kempen Politik</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Lancar iklan kempen serangan terhadap parti pesaing:</p>
+            <div class="form-group">
+              <label>Pilih Parti Pesaing:</label>
+              <select id="attackTarget">
+                <option value="1">Perikatan Nasional (PN)</option>
+                <option value="2">Barisan Nasional (BN)</option>
+              </select>
+            </div>
+            <button class="btn-red" style="width:100%;" onclick="runAttackAd()">Lancar Iklan Serangan (10 PP / MYR 30,000)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- FIXED BOTTOM APP BAR ("A House Divided" Sleek Style) -->
+<footer class="status-bar" id="mainFooter" style="display: none;">
+  <div class="bottom-left-info">
+    <span id="bottomPlayerName" style="color:#fff; font-weight:800;">Wan Luqman</span>
+    <span style="color:var(--text-muted);">|</span>
+    <span>Minggu 25, 2026</span>
+    <span style="color:var(--text-muted);">|</span>
+    <span>🌙 Reset: <span id="mytCountdown" style="color:var(--accent-red);">12:00 AM MYT</span></span>
+  </div>
+  <div class="bottom-right-stats">
+    <div class="stat-badge-red">
+      <span>⚡ Actions:</span>
+      <span id="barPower">400.0</span>
+    </div>
+    <div class="stat-badge-green">
+      <span>💰 Campaign:</span>
+      <span id="barFunds">MYR 1,000,000</span>
+    </div>
+  </div>
+</footer>
+
+<!-- External JavaScript Modules -->
+<script src="js/supabase-client.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
 EOF
 }
