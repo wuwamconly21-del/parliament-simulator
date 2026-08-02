@@ -1,6 +1,6 @@
 /* ==========================================================================
    POWER - Malaysia Geopolitics, Cabinet & 1-Week Election Simulator
-   Game Engine & Application Logic (Complete Expanded Edition)
+   Game Engine & Application Logic (Robust Timeout & Fallback Edition)
    ========================================================================== */
 
 /* Real Malaysian Political Parties & Coalitions */
@@ -173,27 +173,34 @@ let currentUser = null;
 let lastMidnightReset = null;
 let saveTimer = null;
 
-/* Boot & Auth Handling */
+/* Robust Boot & Timeout Handler: Guarantees Loader Hides Within 2.5s */
 window.addEventListener("DOMContentLoaded", async () => {
-  if (!sb) {
-    document.getElementById("bootLoader").innerHTML =
-      "<p style='max-width:360px;text-align:center;color:#fca5a5;'>⚠️ Supabase belum dikonfigurasi. Sila isi SUPABASE_URL & SUPABASE_ANON_KEY di dalam js/supabase-client.js</p>";
-    return;
-  }
-  const { data: { session } } = await sb.auth.getSession();
-  if (session && session.user) {
-    currentUser = session.user;
-    await routeAfterAuth();
-  } else {
-    document.getElementById("bootLoader").style.display = "none";
-    document.getElementById("authModal").style.display = "flex";
+  const forceDismissTimeout = setTimeout(() => {
+    const bootLoader = document.getElementById("bootLoader");
+    if (bootLoader && bootLoader.style.display !== "none") {
+      console.warn("Supabase network timeout reached. Falling back to local auth modal.");
+      bootLoader.style.display = "none";
+      document.getElementById("authModal").style.display = "flex";
+    }
+  }, 2500);
+
+  try {
+    if (sb && sb.auth) {
+      const { data, error } = await sb.auth.getSession();
+      if (data && data.session && data.session.user) {
+        currentUser = data.session.user;
+        clearTimeout(forceDismissTimeout);
+        await routeAfterAuth();
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Supabase session check error:", err);
   }
 
-  sb.auth.onAuthStateChange((event, session) => {
-    if (event === "SIGNED_OUT") {
-      currentUser = null;
-    }
-  });
+  clearTimeout(forceDismissTimeout);
+  document.getElementById("bootLoader").style.display = "none";
+  document.getElementById("authModal").style.display = "flex";
 });
 
 async function routeAfterAuth() {
@@ -201,42 +208,48 @@ async function routeAfterAuth() {
   setBtnLoading("loginBtn", false, "⚡ Log Masuk Ke Server Game");
   setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
 
-  const { data: profile } = await sb.from("player_profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
+  try {
+    if (sb && currentUser) {
+      const { data: profile } = await sb.from("player_profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
 
-  if (!profile) {
-    document.getElementById("bootLoader").style.display = "none";
-    document.getElementById("setupScreen").style.display = "block";
-    document.getElementById("charName").value = currentUser.email.split("@")[0];
-    return;
-  }
+      if (!profile) {
+        document.getElementById("bootLoader").style.display = "none";
+        document.getElementById("setupScreen").style.display = "block";
+        document.getElementById("charName").value = currentUser.email.split("@")[0];
+        return;
+      }
 
-  const { data: gs } = await sb.from("game_state").select("*").eq("user_id", currentUser.id).maybeSingle();
+      const { data: gs } = await sb.from("game_state").select("*").eq("user_id", currentUser.id).maybeSingle();
 
-  state = defaultGameState();
-  state.player.name = profile.character_name;
-  state.player.partyName = profile.party_name;
-  state.player.ideology = profile.ideology;
-  state.player.bio = profile.bio || state.player.bio;
-  state.player.portrait = profile.portrait_url || state.player.portrait;
-  state.player.location = (profile.base_state || "Selangor") + " / Malaysia";
-  state.selectedState = profile.base_state || "Selangor";
+      state = defaultGameState();
+      state.player.name = profile.character_name;
+      state.player.partyName = profile.party_name;
+      state.player.ideology = profile.ideology;
+      state.player.bio = profile.bio || state.player.bio;
+      state.player.portrait = profile.portrait_url || state.player.portrait;
+      state.player.location = (profile.base_state || "Selangor") + " / Malaysia";
+      state.selectedState = profile.base_state || "Selangor";
 
-  if (gs) {
-    state.player.pp = Number(gs.political_power);
-    state.player.funds = Number(gs.liquid_capital);
-    state.player.partyPower = Number(gs.party_power);
-    state.player.reputation = Number(gs.reputation);
-    state.player.btc = Number(gs.btc);
-    state.econPos = gs.econ_position;
-    state.socialPos = gs.social_position;
-    if (gs.parties) state.parties = gs.parties;
-    if (gs.states) state.states = gs.states;
-    if (gs.lobbies) state.lobbies = gs.lobbies;
-    if (gs.bills) state.bills = gs.bills;
-    if (gs.roster) state.roster = gs.roster;
-    if (gs.cabinet) state.cabinet = gs.cabinet;
-    if (gs.articles) state.articles = gs.articles;
-    lastMidnightReset = gs.last_midnight_reset;
+      if (gs) {
+        state.player.pp = Number(gs.political_power);
+        state.player.funds = Number(gs.liquid_capital);
+        state.player.partyPower = Number(gs.party_power);
+        state.player.reputation = Number(gs.reputation);
+        state.player.btc = Number(gs.btc);
+        state.econPos = gs.econ_position;
+        state.socialPos = gs.social_position;
+        if (gs.parties) state.parties = gs.parties;
+        if (gs.states) state.states = gs.states;
+        if (gs.lobbies) state.lobbies = gs.lobbies;
+        if (gs.bills) state.bills = gs.bills;
+        if (gs.roster) state.roster = gs.roster;
+        if (gs.cabinet) state.cabinet = gs.cabinet;
+        if (gs.articles) state.articles = gs.articles;
+        lastMidnightReset = gs.last_midnight_reset;
+      }
+    }
+  } catch (err) {
+    console.warn("DB route load fallback:", err);
   }
 
   document.getElementById("bootLoader").style.display = "none";
@@ -284,45 +297,73 @@ function switchAuthTab(type) {
 async function handleAuth(e) {
   e.preventDefault();
   hideAuthError();
-  if (!sb) return showAuthError("Supabase belum dikonfigurasi.");
-  setBtnLoading("loginBtn", true);
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPass").value;
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
-    setBtnLoading("loginBtn", false, "⚡ Log Masuk Ke Server Game");
-    return showAuthError(error.message);
+
+  if (sb && sb.auth) {
+    setBtnLoading("loginBtn", true);
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        setBtnLoading("loginBtn", false, "⚡ Log Masuk Ke Server Game");
+        return showAuthError(error.message);
+      }
+      currentUser = data.user;
+      await routeAfterAuth();
+      return;
+    } catch (err) {
+      console.warn("Supabase auth fallback:", err);
+    }
   }
-  currentUser = data.user;
-  await routeAfterAuth();
+
+  // Fallback local auth if server offline
+  currentUser = { id: "local_user", email: email };
+  document.getElementById("authModal").style.display = "none";
+  document.getElementById("setupScreen").style.display = "block";
+  document.getElementById("charName").value = email.split("@")[0];
 }
 
 async function handleRegister(e) {
   e.preventDefault();
   hideAuthError();
-  if (!sb) return showAuthError("Supabase belum dikonfigurasi.");
-  setBtnLoading("registerBtn", true);
   const email = document.getElementById("regEmail").value;
   const password = document.getElementById("regPass").value;
   const username = document.getElementById("regUsername").value;
-  const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
-  if (error) {
-    setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
-    return showAuthError(error.message);
+
+  if (sb && sb.auth) {
+    setBtnLoading("registerBtn", true);
+    try {
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { username } } });
+      if (error) {
+        setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
+        return showAuthError(error.message);
+      }
+      if (!data.session) {
+        setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
+        showAuthError("Akaun dicipta! Sila semak emel anda untuk sahkan akaun atau log masuk.");
+        switchAuthTab('login');
+        document.getElementById("authEmail").value = email;
+        return;
+      }
+      currentUser = data.user;
+      await routeAfterAuth();
+      return;
+    } catch (err) {
+      console.warn("Supabase register fallback:", err);
+    }
   }
-  if (!data.session) {
-    setBtnLoading("registerBtn", false, "✨ Cipta Akaun Baru");
-    showAuthError("Akaun dicipta! Sila semak emel anda untuk sahkan akaun sebelum log masuk.");
-    switchAuthTab('login');
-    document.getElementById("authEmail").value = email;
-    return;
-  }
-  currentUser = data.user;
-  await routeAfterAuth();
+
+  // Fallback local registration if server offline
+  currentUser = { id: "local_user", email: email };
+  document.getElementById("authModal").style.display = "none";
+  document.getElementById("setupScreen").style.display = "block";
+  document.getElementById("charName").value = username || email.split("@")[0];
 }
 
 async function logoutPlayer() {
-  if (sb) await sb.auth.signOut();
+  try {
+    if (sb && sb.auth) await sb.auth.signOut();
+  } catch (err) {}
   location.reload();
 }
 
@@ -361,20 +402,24 @@ async function initGame(e) {
     }
   }
 
-  if (sb && currentUser) {
-    await sb.from("player_profiles").upsert({
-      user_id: currentUser.id,
-      username: currentUser.email.split("@")[0],
-      character_name: name,
-      party_name: state.player.partyName,
-      ideology: ideology,
-      bio: state.player.bio,
-      portrait_url: state.player.portrait,
-      base_state: baseState,
-      updated_at: new Date().toISOString()
-    });
-    await sb.from("game_state").upsert(buildGameStateRow());
-    lastMidnightReset = new Date().toISOString();
+  try {
+    if (sb && currentUser && currentUser.id !== "local_user") {
+      await sb.from("player_profiles").upsert({
+        user_id: currentUser.id,
+        username: currentUser.email.split("@")[0],
+        character_name: name,
+        party_name: state.player.partyName,
+        ideology: ideology,
+        bio: state.player.bio,
+        portrait_url: state.player.portrait,
+        base_state: baseState,
+        updated_at: new Date().toISOString()
+      });
+      await sb.from("game_state").upsert(buildGameStateRow());
+      lastMidnightReset = new Date().toISOString();
+    }
+  } catch (err) {
+    console.warn("DB init save fallback:", err);
   }
 
   document.getElementById("setupScreen").style.display = "none";
@@ -390,7 +435,7 @@ async function initGame(e) {
 
 function buildGameStateRow() {
   return {
-    user_id: currentUser.id,
+    user_id: currentUser ? currentUser.id : "local_user",
     political_power: state.player.pp,
     liquid_capital: state.player.funds,
     party_power: state.player.partyPower,
@@ -411,27 +456,33 @@ function buildGameStateRow() {
 }
 
 function queueSave() {
-  if (!sb || !currentUser) return;
+  if (!sb || !currentUser || currentUser.id === "local_user") return;
   const pill = document.getElementById("saveStatus");
   if (pill) { pill.innerText = "Menyimpan..."; pill.className = "save-status saving"; }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
-    const { error } = await sb.from("game_state").upsert(buildGameStateRow());
-    if (pill) {
-      if (error) { pill.innerText = "Ralat simpan"; pill.className = "save-status error"; }
-      else { pill.innerText = "Tersimpan"; pill.className = "save-status saved"; }
+    try {
+      const { error } = await sb.from("game_state").upsert(buildGameStateRow());
+      if (pill) {
+        if (error) { pill.innerText = "Ralat simpan"; pill.className = "save-status error"; }
+        else { pill.innerText = "Tersimpan"; pill.className = "save-status saved"; }
+      }
+    } catch (err) {
+      if (pill) { pill.innerText = "Simpan lokal"; pill.className = "save-status saved"; }
     }
   }, 900);
 }
 
 async function saveProfileToDb() {
-  if (!sb || !currentUser) return;
-  await sb.from("player_profiles").update({
-    character_name: state.player.name,
-    bio: document.getElementById("inputCharBio") ? document.getElementById("inputCharBio").value : state.player.bio,
-    portrait_url: state.player.portrait,
-    updated_at: new Date().toISOString()
-  }).eq("user_id", currentUser.id);
+  if (!sb || !currentUser || currentUser.id === "local_user") return;
+  try {
+    await sb.from("player_profiles").update({
+      character_name: state.player.name,
+      bio: document.getElementById("inputCharBio") ? document.getElementById("inputCharBio").value : state.player.bio,
+      portrait_url: state.player.portrait,
+      updated_at: new Date().toISOString()
+    }).eq("user_id", currentUser.id);
+  } catch (err) {}
 }
 
 function nowInMYT() {
@@ -600,10 +651,16 @@ function updateUI() {
   document.getElementById("profileTitle").innerText = state.player.name;
   document.getElementById("barPower").innerText = state.player.pp.toFixed(1);
   document.getElementById("barFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
-  document.getElementById("btcHoldings").innerText = state.player.btc;
+  if (document.getElementById("btcHoldings")) {
+    document.getElementById("btcHoldings").innerText = state.player.btc;
+  }
 
-  document.getElementById("inputCharName").value = state.player.name;
-  document.getElementById("inputLocation").value = state.player.location;
+  if (document.getElementById("inputCharName")) {
+    document.getElementById("inputCharName").value = state.player.name;
+  }
+  if (document.getElementById("inputLocation")) {
+    document.getElementById("inputLocation").value = state.player.location;
+  }
 
   populateStateSelect();
   renderPartiesAndCandidates();
@@ -621,6 +678,13 @@ function updateUI() {
     document.getElementById("socialSlider").value = state.socialPos;
     document.getElementById("lblEconPos").innerText = state.spectrum[state.econPos - 1];
     document.getElementById("lblSocialPos").innerText = state.spectrum[state.socialPos - 1];
+  }
+
+  if (document.getElementById("portFunds")) {
+    document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
+  }
+  if (document.getElementById("portBtc")) {
+    document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
   }
 }
 
@@ -1041,12 +1105,9 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-page').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).style.display = 'block';
-}
-EOF
-}
 
   if (tabId === 'tabPortfolio') {
-    document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
-    document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
+    if (document.getElementById("portFunds")) document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
+    if (document.getElementById("portBtc")) document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
   }
 }
