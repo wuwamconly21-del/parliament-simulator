@@ -3,637 +3,453 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Real-Time Geopolitics, Parliament & Economic Simulator</title>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Power & Political Process Simulator</title>
   <style>
     :root {
-      --bg-primary: #090d16;
-      --bg-secondary: #131c2e;
-      --bg-card: #1e293b;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --text-main: #f8fafc;
+      --bg-body: #121620;
+      --bg-nav: #1e2433;
+      --bg-card: #181e2b;
+      --bg-hover: #273145;
+      --text-main: #e2e8f0;
       --text-muted: #94a3b8;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --success: #10b981;
-      --purple: #a855f7;
-      --border: #334155;
+      --accent-blue: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger-red: #dc2626;
+      --success-green: #16a34a;
+      --border-color: #2e384d;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-primary); color: var(--text-main); line-height: 1.5; padding: 20px; }
-    .container { max-width: 1400px; margin: 0 auto; }
-    
-    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-    .logo-title h1 { font-size: 22px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-    .logo-title p { font-size: 12px; color: var(--text-muted); }
 
-    .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-body); color: var(--text-main); font-size: 14px; padding-bottom: 50px; }
+
+    header.top-nav { background: var(--bg-nav); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 48px; position: sticky; top: 0; z-index: 100; }
+    .nav-links { display: flex; gap: 15px; align-items: center; }
+    .nav-item { color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 13px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; }
+    .nav-item:hover, .nav-item.active { background: var(--bg-hover); color: #fff; }
+    .badge { background: #475569; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 4px; }
+
+    .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+
+    #toastBanner { position: fixed; top: 60px; right: 20px; background: #1e293b; border: 1px solid #38bdf8; color: #f8fafc; padding: 12px 18px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none; z-index: 1000; font-weight: 500; }
+
+    .world-map-banner { background: linear-gradient(rgba(18, 22, 32, 0.85), rgba(18, 22, 32, 0.95)), url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1200&auto=format&fit=crop'); background-size: cover; background-position: center; border-radius: 8px; border: 1px solid var(--border-color); padding: 25px; text-align: center; margin-bottom: 20px; position: relative; }
+    .election-timer { background: rgba(30, 41, 59, 0.9); display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: bold; color: #38bdf8; border: 1px solid var(--border-color); margin-top: 10px; }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .card-title { font-size: 20px; font-weight: 600; margin-bottom: 15px; text-align: center; color: #f8fafc; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    th { color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
+    tr:hover { background: rgba(255,255,255,0.02); }
+
+    .btn { cursor: pointer; padding: 8px 14px; border-radius: 4px; border: none; font-weight: 600; font-size: 12px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-blue { background: var(--accent-blue); color: #fff; }
+    .btn-blue:hover { background: var(--accent-hover); }
+    .btn-green { background: var(--success-green); color: #fff; }
+    .btn-red { background: var(--danger-red); color: #fff; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+
+    .candidate-portrait { width: 65px; height: 75px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); }
+    .party-logo { width: 36px; height: 36px; object-fit: contain; }
+    .lobby-head-photo { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; }
+
+    .profile-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
+    .portrait-upload-box { text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; border: 1px dashed var(--border-color); }
+    .profile-photo-preview { width: 160px; height: 200px; object-fit: cover; border-radius: 6px; border: 2px solid var(--border-color); margin-bottom: 10px; }
+
+    footer.status-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 32px; background: #0f172a; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; gap: 30px; font-weight: bold; font-size: 13px; z-index: 100; }
+    .stat-power { color: #ef4444; }
+    .stat-funds { color: #22c55e; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+
     .form-group { margin-bottom: 14px; }
-    label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: var(--text-muted); }
-    input, select { width: 100%; padding: 10px; background: rgba(9, 13, 22, 0.8); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 13px; transition: all 0.2s; }
-    input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 8px rgba(56, 189, 248, 0.4); }
-    
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-
-    button { cursor: pointer; padding: 10px 16px; border-radius: 8px; border: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-    .btn-primary { background: linear-gradient(135deg, #38bdf8, #0284c7); color: #0f172a; }
-    .btn-primary:hover { background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
-    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-    .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; }
-    .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-    .btn-purple { background: linear-gradient(135deg, #a855f7, #7e22ce); color: white; }
-
-    /* REDESIGNED SLEEK GLASSMORPHISM AUTH MODAL */
-    #authModal { position: fixed; inset: 0; background: rgba(5, 8, 18, 0.88); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .auth-box { 
-      background: rgba(19, 28, 46, 0.85); 
-      border: 1px solid rgba(56, 189, 248, 0.3); 
-      border-radius: 16px; 
-      width: 450px; 
-      padding: 32px; 
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.15); 
-    }
-    .auth-header { text-align: center; margin-bottom: 24px; }
-    .auth-header h2 { color: var(--accent); font-size: 22px; margin-bottom: 4px; }
-    .auth-header p { font-size: 12px; color: var(--text-muted); }
-    
-    .auth-tabs { display: flex; background: rgba(9, 13, 22, 0.6); padding: 4px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; }
-    .auth-tab-btn { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
-    .auth-tab-btn.active { background: var(--accent); color: #0f172a; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4); }
-
-    .nav-tabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-wrap: wrap; }
-    .tab-btn { background: var(--bg-secondary); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; }
-    .tab-btn.active { background: var(--accent); color: #0f172a; font-weight: bold; border-color: var(--accent); }
-
-    .stat-badge { background: var(--bg-card); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
-    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
-    .stat-val { font-size: 18px; font-weight: bold; color: var(--accent); }
-
-    .map-container { background: #0b1329; border: 1px solid var(--border); border-radius: 8px; padding: 15px; position: relative; }
-    .svg-map { width: 100%; height: 280px; }
-    .map-region { cursor: pointer; transition: all 0.3s; fill: #1e293b; stroke: #38bdf8; stroke-width: 1.5; }
-    .map-region:hover { fill: #0284c7; filter: drop-shadow(0 0 8px #38bdf8); }
-    .map-region.active-region { fill: #0369a1; stroke: #f59e0b; stroke-width: 2.5; }
-
-    .parliament-bar { display: flex; height: 32px; border-radius: 6px; overflow: hidden; margin: 12px 0; border: 1px solid var(--border); }
-    .party-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
-
-    .game-log { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 10px; height: 160px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #cbd5e1; }
-    .log-item { margin-bottom: 4px; border-bottom: 1px dashed #334155; padding-bottom: 2px; }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
-    th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
-
-    .online-indicator { display: inline-block; width: 10px; height: 10px; background: var(--success); border-radius: 50%; margin-right: 6px; }
-    .progress-bar-bg { background: #1e293b; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 4px; }
-    .progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+    label { display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-muted); font-size: 12px; }
+    input[type="text"], textarea, select { width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 13px; }
   </style>
 </head>
 <body>
 
+<!-- TOP NAVBAR -->
+<header class="top-nav">
+  <div class="nav-links">
+    <span class="nav-item active" onclick="switchTab('tabElections')">Power</span>
+    <span class="nav-item" id="navPlayerName" onclick="switchTab('tabProfile')">Lyndon B. Johnson</span>
+    <span class="nav-item" onclick="switchTab('tabActions')">Actions</span>
+    <span class="nav-item" onclick="switchTab('tabElections')">USA ▼</span>
+    <span class="nav-item" onclick="switchTab('tabSenate')">Congress ▼</span>
+    <span class="nav-item" onclick="switchTab('tabElections')">Parties ▼</span>
+    <span class="nav-item" onclick="switchTab('tabLobbies')">Interest Groups</span>
+    <span class="nav-item" onclick="switchTab('tabNews')">News ▼</span>
+    <span class="nav-item" onclick="switchTab('tabNews')">Emails <span class="badge">112</span></span>
+  </div>
+  <div class="nav-links">
+    <span class="nav-item" onclick="switchTab('tabProfile')">Settings</span>
+    <span class="nav-item" onclick="switchTab('tabProfile')">Logout</span>
+  </div>
+</header>
+
+<div id="toastBanner">Action executed successfully!</div>
+
 <div class="container">
-  <!-- SLEEK TABBED AUTH MODAL -->
-  <div id="authModal">
-    <div class="auth-box">
-      <div class="auth-header">
-        <h2>🌐 Geopolitics World Portal</h2>
-        <p>Akaun Real-Time Parliament, Economy & AI Voting</p>
-      </div>
 
-      <!-- Auth Toggle Tabs -->
-      <div class="auth-tabs">
-        <div class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">🔑 Log Masuk</div>
-        <div class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">📝 Daftar Akaun</div>
-      </div>
-      
-      <!-- SIGN IN FORM -->
-      <form id="loginForm" onsubmit="handleAuth(event)">
-        <div class="form-group">
-          <label>Email Akaun</label>
-          <input type="email" id="authEmail" required value="luqman@sim.net" placeholder="nama@email.com">
-        </div>
-        <div class="form-group">
-          <label>Kata Laluan (Password)</label>
-          <input type="password" id="authPass" required value="••••••••••••" placeholder="Masukkan Kata Laluan">
-        </div>
-        <div class="form-group">
-          <label>Supabase Project URL</label>
-          <input type="text" id="supabaseUrl" required placeholder="https://your-project.supabase.co">
-        </div>
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; padding: 13px; font-size: 14px;">⚡ Log Masuk Ke Server</button>
-      </form>
+  <!-- TAB 1: ELECTIONS & CANDIDATES -->
+  <div id="tabElections" class="tab-page">
+    <div class="world-map-banner">
+      <h2 style="font-size: 24px; color: #fff;">National Presidential & Parliamentary Election</h2>
+      <div class="election-timer">🗳 Election in 79 hours</div>
+    </div>
 
-      <!-- SIGN UP FORM -->
-      <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
-        <div class="form-group">
-          <label>Nama Pemain / Username</label>
-          <input type="text" id="regUsername" required placeholder="e.g. Wan Luqman">
-        </div>
-        <div class="form-group">
-          <label>Email Baru</label>
-          <input type="email" id="regEmail" required placeholder="nama@email.com">
-        </div>
-        <div class="form-group">
-          <label>Cipta Kata Laluan</label>
-          <input type="password" id="regPass" required placeholder="Minimal 6 aksara">
-        </div>
-        <div class="form-group">
-          <label>Supabase Project URL</label>
-          <input type="text" id="regSupabaseUrl" required placeholder="https://your-project.supabase.co">
-        </div>
-        <button type="submit" class="btn-success" style="width: 100%; margin-top: 10px; padding: 13px; font-size: 14px;">✨ Cipta Akaun & Masuk</button>
-      </form>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Politician</th>
+            <th>Party</th>
+            <th>Campaign Strength</th>
+            <th>Polling</th>
+            <th>Electoral College / Seats</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="candidateTableBody">
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <header>
-    <div class="logo-title">
-      <h1>🗺 World Geopolitics, Economy & AI Civilian Voting</h1>
-      <p>Simulating Interactive Map, AI Demographics, Political Power & Economy</p>
+  <!-- TAB 2: INTEREST GROUPS & LOBBIES -->
+  <div id="tabLobbies" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">Interest Groups & Lobbies</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Head</th>
+            <th>State Strength</th>
+            <th>National Strength</th>
+            <th>Your Relationship</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="lobbyTableBody">
+        </tbody>
+      </table>
     </div>
-    <div id="topStats" style="display: flex; gap: 8px;">
-      <div class="stat-badge"><div class="stat-label">Capital Cash</div><div class="stat-val" id="cashVal" style="color: var(--success);">$500,000</div></div>
-      <div class="stat-badge"><div class="stat-label">Political Power (PP)</div><div class="stat-val" id="ppVal" style="color: var(--purple);">120 PP</div></div>
-      <div class="stat-badge"><div class="stat-label">Underworld Influence</div><div class="stat-val" id="infVal" style="color: var(--warning);">45 INF</div></div>
-      <div class="stat-badge"><div class="stat-label">Civilian Approval</div><div class="stat-val" id="approvalVal" style="color: var(--accent);">54%</div></div>
-    </div>
-  </header>
-
-  <!-- SETUP SCREEN -->
-  <div id="setupScreen" class="card" style="display: none;">
-    <h2 style="color: var(--accent); margin-bottom: 12px;">Create Character & Customize Starter Setup</h2>
-    <form onsubmit="initGame(event)">
-      <div class="grid-3">
-        <div class="form-group">
-          <label>Character Name</label>
-          <input type="text" id="charName" required value="Wan Luqman">
-        </div>
-        <div class="form-group">
-          <label>Political & Faction Path</label>
-          <select id="careerPath">
-            <option value="politician">Parliamentary Party Leader / MP</option>
-            <option value="corporate">Corporate Tycoon / Investor</option>
-            <option value="rebel">Insurgent General / Rebel</option>
-            <option value="mafia">Underworld Crime Syndicate Boss</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Starting Nation Base</label>
-          <select id="startNation">
-            <option value="Malaysia">Malaysia (Dewan Rakyat Westminster - 222 Seats)</option>
-            <option value="United Kingdom">United Kingdom (House of Commons - 650 Seats)</option>
-            <option value="United States">United States (House of Reps - 435 Seats)</option>
-            <option value="France">France (National Assembly - 577 Seats)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid-3" style="margin-top: 10px;">
-        <div class="form-group">
-          <label>Custom Party Name</label>
-          <input type="text" id="partyName" value="People's Progressive Alliance">
-        </div>
-        <div class="form-group">
-          <label>Ideology Focus</label>
-          <select id="partyIdeology">
-            <option value="Social Democracy">Social Democracy (Balanced Tax, High Welfare)</option>
-            <option value="Conservatism">Conservatism (Low Business Tax, High Security)</option>
-            <option value="Liberalism">Liberalism (Free Market, High Civil Rights)</option>
-            <option value="Nationalism">Nationalism (Protectionist, High Defense)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Starting Capital Bonus</label>
-          <input type="text" readonly value="$500,000 Starting Funds Pre-Set">
-        </div>
-      </div>
-
-      <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;">Launch Game & Interactive World Map</button>
-    </form>
   </div>
 
-  <!-- DASHBOARD -->
-  <div id="dashboardScreen" style="display: none;">
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('tabMap', event)">🗺 Interactive World Map</button>
-      <button class="tab-btn" onclick="switchTab('tabCivilianAI', event)">🗳 AI Civilian Demographics & Voting</button>
-      <button class="tab-btn" onclick="switchTab('tabParliament', event)">🏛 Parliament & Political Power</button>
-      <button class="tab-btn" onclick="switchTab('tabEconomy', event)">📈 Macroeconomy & Indicators</button>
-      <button class="tab-btn" onclick="switchTab('tabSubversive', event)">🕵 Rebels, Mafia & Influence</button>
-      <button class="tab-btn" onclick="switchTab('tabChat', event)">💬 Live World Broadcast</button>
+  <!-- TAB 3: SENATE / PARLIAMENT LEGISLATIVE CHAMBER -->
+  <div id="tabSenate" class="tab-page" style="display: none;">
+    <div style="text-align: center; margin-bottom: 15px;">
+      <h2 style="font-size: 24px; margin-bottom: 10px;">The Senate Chamber</h2>
+      <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&auto=format&fit=crop" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
+      <button class="btn btn-blue" style="margin-top: 10px;">Current Law</button>
     </div>
 
-    <!-- TAB 1: INTERACTIVE MAP -->
-    <div id="tabMap" class="tab-content card">
-      <h2>Interactive Territorial & World Map</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Click any region below to inspect parliamentary seats, dominant demographic, unrest level, and launch actions:</p>
-      
-      <div class="grid-2">
-        <div class="map-container">
-          <svg class="svg-map" viewBox="0 0 600 280">
-            <path class="map-region active-region" id="reg-capital" d="M 180 40 L 320 40 L 300 130 L 160 120 Z" onclick="selectRegion('Capital District', 75, 'Urban Youth & Working Class', 10, 'Ruling Alliance Controlled')"/>
-            <text x="210" y="85" fill="#fff" font-size="12" font-weight="bold" pointer-events="none">Capital District</text>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Bill</th>
+            <th>Law Summary</th>
+            <th>Ayes</th>
+            <th>Nays</th>
+            <th>Abstentions</th>
+            <th>Author</th>
+            <th>Voting Ends</th>
+            <th>Vote</th>
+          </tr>
+        </thead>
+        <tbody id="billsTableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-            <path class="map-region" id="reg-north" d="M 40 30 L 170 40 L 150 130 L 30 110 Z" onclick="selectRegion('Northern Industrial Zone', 48, 'Working Class', 25, 'Opposition Stronghold')"/>
-            <text x="60" y="80" fill="#fff" font-size="12" font-weight="bold" pointer-events="none">Northern Zone</text>
-
-            <path class="map-region" id="reg-south" d="M 150 140 L 310 140 L 290 240 L 130 230 Z" onclick="selectRegion('Southern Agrarian Sector', 52, 'Rural Farmers', 15, 'Coalition Partner')"/>
-            <text x="180" y="190" fill="#fff" font-size="12" font-weight="bold" pointer-events="none">Southern Sector</text>
-
-            <path class="map-region" id="reg-east" d="M 330 60 L 550 50 L 530 220 L 320 200 Z" onclick="selectRegion('Eastern Archipelago (Puppet State)', 47, 'Military & Locals', 55, 'Puppet Vassal (High Unrest)')"/>
-            <text x="380" y="130" fill="#fff" font-size="12" font-weight="bold" pointer-events="none">Eastern Vassal</text>
-          </svg>
+  <!-- TAB 4: CHARACTER PROFILE & PORTRAIT UPLOAD -->
+  <div id="tabProfile" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title" id="profileTitle">Lyndon B. Johnson</div>
+      <div class="profile-grid">
+        <div class="portrait-upload-box">
+          <img id="portraitPreview" src="https://upload.wikimedia.org/wikipedia/commons/c/c3/37_Lyndon_B._Johnson_3x4.jpg" class="profile-photo-preview" alt="Candidate Portrait">
+          <label>Upload Custom Portrait Photo:</label>
+          <input type="file" id="portraitFileInput" accept="image/*" onchange="uploadLocalPortrait(event)" style="margin-top: 6px; font-size: 11px;">
+          <div style="margin: 8px 0; font-size: 11px; color: var(--text-muted);">- OR Paste Photo URL -</div>
+          <input type="text" id="portraitUrlInput" placeholder="https://..." onchange="updatePortraitUrl(this.value)" style="font-size: 11px;">
         </div>
 
         <div>
-          <h3>Selected Region Intel</h3>
-          <div class="card" style="background: var(--bg-primary); margin-top: 8px;">
-            <h4 style="color: var(--accent);" id="regionName">Capital District</h4>
-            <div style="font-size: 13px; margin: 8px 0;">
-              <div>• Parliamentary Seats: <b id="regionSeats" style="color:var(--success);">75 Seats</b></div>
-              <div>• Dominant AI Group: <b id="regionDemo">Urban Youth & Working Class</b></div>
-              <div>• Regional Unrest: <b id="regionUnrest" style="color:var(--warning);">10% Low</b></div>
-              <div>• Controlling Faction: <b id="regionStatus">Ruling Alliance Controlled</b></div>
+          <div class="form-group">
+            <label>Candidate Name:</label>
+            <input type="text" id="inputCharName" value="Lyndon B. Johnson" onchange="updateCharName(this.value)">
+          </div>
+          <div class="form-group">
+            <label>Biography & Political Quote:</label>
+            <textarea id="inputCharBio" rows="3">Better to let him know who's in charge than to let him think he's got the keys to the car.</textarea>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Location Base:</label>
+              <input type="text" id="inputLocation" value="TX / USA">
             </div>
-            
-            <h4 style="margin-top: 12px; font-size: 13px;">Region Actions:</h4>
-            <button class="btn-primary" style="width:100%; margin-top:6px;" onclick="regionAction('campaign')">📢 Run Political Campaign (Cost: $20,000 / +15 PP)</button>
-            <button class="btn-warning" style="width:100%; margin-top:6px;" onclick="regionAction('build')">🏗 Build Infrastructure ($50,000 / +5% Approval)</button>
-            <button class="btn-danger" style="width:100%; margin-top:6px;" onclick="regionAction('rebel')">💣 Fund Underground Insurgents ($40,000 / +20 Unrest)</button>
+            <div class="form-group">
+              <label>Supporting Lobbies:</label>
+              <input type="text" readonly value="Oil & Gas, Labor Unions, Finance">
+            </div>
           </div>
+          <button class="btn btn-green" onclick="saveProfile()">Save Character Profile</button>
         </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: AI CIVILIAN DEMOGRAPHICS & VOTING -->
-    <div id="tabCivilianAI" class="tab-content card" style="display: none;">
-      <h2>AI Civilian Demographics & Voting Engine</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Civilians evaluate your tax rates, healthcare, inflation, and civil rights to determine how they cast their vote in upcoming elections:</p>
-
-      <div class="grid-5" id="demographicsGrid"></div>
-
-      <div class="grid-2" style="margin-top: 20px;">
-        <div class="card" style="background: var(--bg-primary);">
-          <h3>AI Civilian General Election Simulation</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Simulate how the entire AI population votes based on your current policy performance:</p>
-          <button class="btn-success" style="width: 100%; padding: 12px;" onclick="simulateAIElection()">🗳 Run AI Civilian General Election</button>
-        </div>
-        <div class="game-log" id="electionLog">
-          <div class="log-item">> AI Demographic Voting Model active. Tracking 5 civilian classes.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: PARLIAMENT & PP -->
-    <div id="tabParliament" class="tab-content card" style="display: none;">
-      <h2>Parliamentary Chamber & Executive Power</h2>
-      <div class="grid-4" style="margin: 10px 0;">
-        <div class="stat-badge"><div class="stat-label">Total Seats</div><div class="stat-val" id="totalSeats">222</div></div>
-        <div class="stat-badge"><div class="stat-label">Ruling Coalition</div><div class="stat-val" id="govSeats" style="color: var(--success);">116</div></div>
-        <div class="stat-badge"><div class="stat-label">Political Power</div><div class="stat-val" id="parliamentPP" style="color: var(--purple);">120 PP</div></div>
-        <div class="stat-badge"><div class="stat-label">Monthly PP Gain</div><div class="stat-val" style="color: var(--success);">+15 PP/mo</div></div>
-      </div>
-
-      <div class="parliament-bar" id="parliamentBar"></div>
-
-      <div class="grid-2" style="margin-top: 16px;">
-        <div>
-          <h3>Executive Decrees & Legislative Bills</h3>
-          <button class="btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="tableLaw('healthcare')">📜 Pass Universal Healthcare (Cost: 30 PP / $15,000)</button>
-          <button class="btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="tableLaw('tax_cut')">📜 Pass Business Tax Cut (Cost: 25 PP / Business +10%)</button>
-          <button class="btn-warning" style="width: 100%; margin-bottom: 8px;" onclick="tableLaw('lobby')">🤝 Lobby Opposition Members (Cost: 40 PP / +5 Seats)</button>
-          <button class="btn-danger" style="width: 100%;" onclick="triggerCoup()">⚔️ Attempt Military Coup (Broadcast Server Alert)</button>
-        </div>
-        <div>
-          <h3>Parliamentary Log</h3>
-          <div class="game-log" id="parliamentLog"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 4: MACROECONOMY -->
-    <div id="tabEconomy" class="tab-content card" style="display: none;">
-      <h2>Macroeconomic Indicators & Fiscal Policy</h2>
-      <div class="grid-4" style="margin-bottom: 16px;">
-        <div class="stat-badge"><div class="stat-label">GDP Growth Rate</div><div class="stat-val" id="gdpVal" style="color: var(--success);">+3.8%</div></div>
-        <div class="stat-badge"><div class="stat-label">Inflation Rate</div><div class="stat-val" id="inflationVal" style="color: var(--warning);">2.4%</div></div>
-        <div class="stat-badge"><div class="stat-label">Unemployment Rate</div><div class="stat-val" id="unemploymentVal" style="color: var(--danger);">3.6%</div></div>
-        <div class="stat-badge"><div class="stat-label">National Debt</div><div class="stat-val" id="debtVal">$210B</div></div>
-      </div>
-
-      <div class="grid-2">
-        <div>
-          <h3>Tax Policy Adjustments</h3>
-          <div class="form-group">
-            <label>Personal Income Tax Rate: <span id="incomeTaxLabel">25%</span></label>
-            <input type="range" min="10" max="60" value="25" id="incomeTaxSlider" oninput="updateTax('income', this.value)">
-          </div>
-          <div class="form-group">
-            <label>Corporate Tax Rate: <span id="corpTaxLabel">20%</span></label>
-            <input type="range" min="5" max="50" value="20" id="corpTaxSlider" oninput="updateTax('corp', this.value)">
-          </div>
-        </div>
-        <div>
-          <h3>Corporate Market & Crypto</h3>
-          <button class="btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="buyCrypto('BTC')">Buy Bitcoin ($9,200 / BTC)</button>
-          <button class="btn-purple" style="width: 100%; margin-bottom: 8px;" onclick="createCorp()">Form Stock Corporation ($100,000)</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 5: SUBVERSIVE -->
-    <div id="tabSubversive" class="tab-content card" style="display: none;">
-      <h2>Underground Operations: Insurgents & Mafia Syndicates</h2>
-      <div class="grid-2">
-        <div>
-          <h3>Rebel Faction Operations</h3>
-          <button class="btn-danger" style="width: 100%; margin-bottom: 8px;" onclick="subversiveAction('rebels')">💣 Arm Guerrilla Cell ($50,000 / +15 Insurgency)</button>
-        </div>
-        <div>
-          <h3>Underworld Rackets</h3>
-          <button class="btn-purple" style="width: 100%; margin-bottom: 8px;" onclick="subversiveAction('bribe')">💰 Bribe Cabinet Minister ($25,000 / +20 INF)</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 6: CHAT -->
-    <div id="tabChat" class="tab-content card" style="display: none;">
-      <h2>Live World Broadcast Channel</h2>
-      <div class="game-log" id="worldChatBox" style="height: 200px;">
-        <div class="log-item">[Global Chat] Connected to Supabase Realtime Server.</div>
-      </div>
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <input type="text" id="chatInput" placeholder="Send server-wide broadcast message...">
-        <button class="btn-primary" onclick="sendChatMessage()">Send Broadcast</button>
       </div>
     </div>
   </div>
+
+  <!-- TAB 5: ACTIONS & CAMPAIGN HEADQUARTERS -->
+  <div id="tabActions" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">Campaign Actions & Political Power</div>
+      <div class="grid-3">
+        <button class="btn btn-blue" style="padding: 15px;" onclick="executeAction('Rally', 10, 20000)">📢 Hold National Rally (Cost: 10 Power, $20,000)</button>
+        <button class="btn btn-blue" style="padding: 15px;" onclick="executeAction('Lobby', 15, 50000)">💼 Fund Interest Group (Cost: 15 Power, $50,000)</button>
+        <button class="btn btn-green" style="padding: 15px;" onclick="executeAction('Fundraise', -5, -100000)">💵 Host Political Fundraiser (+100,000 Cash)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: NEWS & EVENTS FEED -->
+  <div id="tabNews" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">National News & Event Wire</div>
+      <div id="newsFeedList">
+        <div class="card" style="background: rgba(0,0,0,0.3);">
+          <p style="font-size: 15px; font-weight: 500;">A bill with special infrastructure funding for the state of WY has passed in Congress, increasing economic growth and decreasing unemployment in the state.</p>
+        </div>
+        <div class="card" style="background: rgba(0,0,0,0.3);">
+          <p style="font-size: 15px; font-weight: 500;">Higher quality education in WY has resulted in businesses moving into the state, increasing growth by 0.13%.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<script>
-  const SUPABASE_KEY = "sb_publishable_6Hm_Po8BOuuV36YlCqOz3g_rTHDqzyV";
-  let supabaseClient = null;
+<!-- FIXED BOTTOM STATUS BAR -->
+<footer class="status-bar">
+  <div>POWER: <span class="stat-power" id="barPower">43.2</span></div>
+  <div>FUNDS: <span class="stat-funds" id="barFunds">$500,000</span></div>
+</footer>
 
+<script>
   let state = {
-    user: { email: "" },
     player: {
-      name: "", path: "", cash: 500000, pp: 120, inf: 45, approval: 54, btc: 0
+      name: "Lyndon B. Johnson",
+      power: 43.2,
+      funds: 500000,
+      portrait: "https://upload.wikimedia.org/wikipedia/commons/c/c3/37_Lyndon_B._Johnson_3x4.jpg",
+      location: "TX / USA"
     },
-    nation: "Malaysia",
-    seats: 222,
-    govSeats: 116,
-    demographics: [
-      { name: "👷 Working Class", share: 35, satisfaction: 55, color: "#38bdf8" },
-      { name: "💼 Business Owners", share: 20, satisfaction: 60, color: "#10b981" },
-      { name: "🎓 Urban Youth", share: 20, satisfaction: 50, color: "#a855f7" },
-      { name: "🚜 Rural Farmers", share: 15, satisfaction: 58, color: "#f59e0b" },
-      { name: "🪖 Military Officers", share: 10, satisfaction: 75, color: "#ef4444" }
+    candidates: [
+      { name: "John Heydrich", party: "Republican Party", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Republicanlogo.svg", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Reinhard_Heydrich_portrait.jpg/220px-Reinhard_Heydrich_portrait.jpg", strength: 5253.3, polling: 54.5, votes: 74430210, electoral: 342 },
+      { name: "Franklin Delano Roosevelt", party: "Democratic Party", logo: "https://upload.wikimedia.org/wikipedia/commons/0/02/DemocraticLogo.svg", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/FDR_1944_Color_Portrait.jpg/220px-FDR_1944_Color_Portrait.jpg", strength: 5271.9, polling: 45.0, votes: 61478521, electoral: 190 },
+      { name: "Lyndon B. Johnson (You)", party: "Independent / Reform", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", photo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/37_Lyndon_B._Johnson_3x4.jpg", strength: 221.1, polling: 0.5, votes: 643559, electoral: 0 }
     ],
-    selectedRegion: "Capital District"
+    lobbies: [
+      { group: "Finance", head: "Adrian Tam", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 107, natStr: 80, rel: 50 },
+      { group: "Healthcare, Insurance & Pharma", head: "Jim Rohan", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", stateStr: 75, natStr: 73.5, rel: 50 },
+      { group: "Military-Industrial Complex", head: "Akeno Misaki", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 75, natStr: 73.7, rel: 50 }
+    ],
+    bills: [
+      { code: "S.7435: Annoy Estelle Act", law: "abortion, legal during first trimester", ayes: 1, nays: 0, abstentions: 99, author: "Oreki Houtarou", timer: "23 hours" },
+      { code: "S.3292: Marijuana Safety Act", law: "marijuana, legal and regulated", ayes: 15, nays: 19, abstentions: 66, author: "Texas Ranger", timer: "12 hours" },
+      { code: "S.9087: Medicare For All Act", law: "healthcare, single payer", ayes: 14, nays: 35, abstentions: 51, author: "Dylan Vega", timer: "6 hours" }
+    ]
   };
 
-  function switchAuthTab(type) {
-    document.querySelectorAll('.auth-tab-btn').forEach(btn => btn.classList.remove('active'));
-    if (type === 'login') {
-      document.getElementById('tabLoginBtn').classList.add('active');
-      document.getElementById('loginForm').style.display = 'block';
-      document.getElementById('registerForm').style.display = 'none';
-    } else {
-      document.getElementById('tabRegisterBtn').classList.add('active');
-      document.getElementById('loginForm').style.display = 'none';
-      document.getElementById('registerForm').style.display = 'block';
-    }
-  }
-
-  function handleAuth(e) {
-    e.preventDefault();
-    state.user.email = document.getElementById("authEmail").value;
-    const url = document.getElementById("supabaseUrl").value;
-    if (url && window.supabase) {
-      try {
-        supabaseClient = window.supabase.createClient(url, SUPABASE_KEY);
-      } catch (err) { console.warn("Supabase init fallback:", err); }
-    }
-    document.getElementById("authModal").style.display = "none";
-    document.getElementById("setupScreen").style.display = "block";
-  }
-
-  function handleRegister(e) {
-    e.preventDefault();
-    state.user.email = document.getElementById("regEmail").value;
-    const username = document.getElementById("regUsername").value;
-    const url = document.getElementById("regSupabaseUrl").value;
-    if (username) document.getElementById("charName").value = username;
-
-    if (url && window.supabase) {
-      try {
-        supabaseClient = window.supabase.createClient(url, SUPABASE_KEY);
-      } catch (err) { console.warn("Supabase init fallback:", err); }
-    }
-    document.getElementById("authModal").style.display = "none";
-    document.getElementById("setupScreen").style.display = "block";
-  }
-
-  function initGame(e) {
-    e.preventDefault();
-    state.player.name = document.getElementById("charName").value;
-    state.player.path = document.getElementById("careerPath").value;
-    state.nation = document.getElementById("startNation").value;
-
-    const nationSeats = { "Malaysia": 222, "United Kingdom": 650, "United States": 435, "France": 577 };
-    state.seats = nationSeats[state.nation] || 222;
-    state.govSeats = Math.floor(state.seats * 0.53);
-
-    document.getElementById("setupScreen").style.display = "none";
-    document.getElementById("dashboardScreen").style.display = "block";
-
-    updateUI();
-    renderDemographics();
-    logParliament(`Game Launched. ${state.player.name} starting capital $500,000 cash pre-set.`);
+  function showToast(msg) {
+    const banner = document.getElementById("toastBanner");
+    banner.innerText = msg;
+    banner.style.display = "block";
+    setTimeout(() => { banner.style.display = "none"; }, 3000);
   }
 
   function updateUI() {
-    document.getElementById("cashVal").innerText = `$${state.player.cash.toLocaleString()}`;
-    document.getElementById("ppVal").innerText = `${state.player.pp} PP`;
-    document.getElementById("infVal").innerText = `${state.player.inf} INF`;
-    
-    let totalScore = 0;
-    state.demographics.forEach(d => totalScore += (d.satisfaction * (d.share / 100)));
-    state.player.approval = Math.round(totalScore);
-    document.getElementById("approvalVal").innerText = `${state.player.approval}%`;
+    document.getElementById("navPlayerName").innerText = state.player.name;
+    document.getElementById("profileTitle").innerText = state.player.name;
+    document.getElementById("barPower").innerText = state.player.power.toFixed(1);
+    document.getElementById("barFunds").innerText = `$${state.player.funds.toLocaleString()}`;
 
-    document.getElementById("totalSeats").innerText = state.seats;
-    document.getElementById("govSeats").innerText = state.govSeats;
-    document.getElementById("parliamentPP").innerText = `${state.player.pp} PP`;
-
-    renderParliamentBar();
+    renderCandidates();
+    renderLobbies();
+    renderBills();
   }
 
-  function renderDemographics() {
-    const grid = document.getElementById("demographicsGrid");
-    grid.innerHTML = "";
-    state.demographics.forEach(d => {
-      const card = document.createElement("div");
-      card.className = "stat-badge";
-      card.innerHTML = `
-        <div class="stat-label">${d.name} (${d.share}%)</div>
-        <div class="stat-val" style="color:${d.color}">${d.satisfaction}%</div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width:${d.satisfaction}%; background:${d.color}"></div>
-        </div>
+  function renderCandidates() {
+    const tbody = document.getElementById("candidateTableBody");
+    tbody.innerHTML = "";
+    state.candidates.forEach((c, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${c.photo}" class="candidate-portrait">
+            <span style="font-weight:bold; color:#38bdf8">${c.name}</span>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <img src="${c.logo}" class="party-logo">
+            <span>${c.party}</span>
+          </div>
+        </td>
+        <td style="font-weight:bold;">${c.strength.toFixed(1)}</td>
+        <td>
+          <div style="font-weight:bold;">${c.polling.toFixed(1)}%</div>
+          <div style="font-size:11px; color:var(--text-muted);">${c.votes.toLocaleString()}</div>
+        </td>
+        <td style="font-weight:bold;">${c.electoral} Votes</td>
+        <td>
+          <button class="btn btn-blue" onclick="campaignForCandidate(${idx})">Campaign For (10 power, $100,000)</button>
+        </td>
       `;
-      grid.appendChild(card);
+      tbody.appendChild(tr);
     });
   }
 
-  function renderParliamentBar() {
-    const bar = document.getElementById("parliamentBar");
-    bar.innerHTML = "";
-    const seg1 = document.createElement("div");
-    seg1.className = "party-seg";
-    seg1.style.width = (state.govSeats / state.seats * 100) + "%";
-    seg1.style.backgroundColor = "#38bdf8";
-    seg1.innerText = `Gov (${state.govSeats})`;
-
-    const seg2 = document.createElement("div");
-    seg2.className = "party-seg";
-    seg2.style.width = ((state.seats - state.govSeats) / state.seats * 100) + "%";
-    seg2.style.backgroundColor = "#ef4444";
-    seg2.innerText = `Opp (${state.seats - state.govSeats})`;
-
-    bar.appendChild(seg1);
-    bar.appendChild(seg2);
-  }
-
-  function selectRegion(name, seats, demo, unrest, status) {
-    document.querySelectorAll('.map-region').forEach(el => el.classList.remove('active-region'));
-    event.target.classList.add('active-region');
-
-    state.selectedRegion = name;
-    document.getElementById("regionName").innerText = name;
-    document.getElementById("regionSeats").innerText = `${seats} Seats`;
-    document.getElementById("regionDemo").innerText = demo;
-    document.getElementById("regionUnrest").innerText = `${unrest}% Unrest`;
-    document.getElementById("regionStatus").innerText = status;
-  }
-
-  function regionAction(type) {
-    if (type === 'campaign') {
-      if (state.player.cash >= 20000) {
-        state.player.cash -= 20000;
-        state.player.pp += 15;
-        state.demographics[2].satisfaction = Math.min(100, state.demographics[2].satisfaction + 5);
-        alert(`Political campaign executed in ${state.selectedRegion}! +15 PP gained.`);
-        updateUI();
-        renderDemographics();
-      } else alert("Need $20,000 cash.");
-    } else if (type === 'build') {
-      if (state.player.cash >= 50000) {
-        state.player.cash -= 50000;
-        state.demographics[0].satisfaction = Math.min(100, state.demographics[0].satisfaction + 6);
-        alert(`Infrastructure constructed in ${state.selectedRegion}! Working class satisfaction increased.`);
-        updateUI();
-        renderDemographics();
-      } else alert("Need $50,000 cash.");
+  function campaignForCandidate(idx) {
+    if (state.player.power >= 10 && state.player.funds >= 100000) {
+      state.player.power -= 10;
+      state.player.funds -= 100000;
+      state.candidates[idx].strength += 150.0;
+      state.candidates[idx].polling = Math.min(100, state.candidates[idx].polling + 1.8);
+      state.candidates[idx].electoral += 12;
+      
+      showToast(`Campaign launched for ${state.candidates[idx].name}! Strength & polling increased.`);
+      updateUI();
+    } else {
+      showToast("Need at least 10 Power and $100,000 Funds!");
     }
   }
 
-  function simulateAIElection() {
-    let projectedSeats = Math.round(state.seats * (state.player.approval / 100));
-    state.govSeats = projectedSeats;
+  function renderLobbies() {
+    const tbody = document.getElementById("lobbyTableBody");
+    tbody.innerHTML = "";
+    state.lobbies.forEach((l, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="font-weight:bold; color:#f8fafc;">${l.group}</td>
+        <td>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${l.photo}" class="lobby-head-photo">
+            <span>${l.head}</span>
+          </div>
+        </td>
+        <td>${l.stateStr}</td>
+        <td>${l.natStr}</td>
+        <td style="color:#22c55e; font-weight:bold;">${l.rel}%</td>
+        <td>
+          <button class="btn btn-green" onclick="lobbyGroup(${idx})">Lobby Group (5 Power)</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function lobbyGroup(idx) {
+    if (state.player.power >= 5) {
+      state.player.power -= 5;
+      state.lobbies[idx].rel = Math.min(100, state.lobbies[idx].rel + 8);
+      showToast(`Relationship with ${state.lobbies[idx].group} increased to ${state.lobbies[idx].rel}%!`);
+      updateUI();
+    } else showToast("Need at least 5 Power!");
+  }
+
+  function renderBills() {
+    const tbody = document.getElementById("billsTableBody");
+    tbody.innerHTML = "";
+    state.bills.forEach((b, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="color:#38bdf8; font-weight:bold;">${b.code}</td>
+        <td>${b.law}</td>
+        <td style="color:#22c55e; font-weight:bold;">${b.ayes}</td>
+        <td style="color:#ef4444; font-weight:bold;">${b.nays}</td>
+        <td>${b.abstentions}</td>
+        <td>${b.author}</td>
+        <td>${b.timer}</td>
+        <td>
+          <button class="btn btn-green" onclick="voteBill(${idx}, 'aye')">Aye</button>
+          <button class="btn btn-red" onclick="voteBill(${idx}, 'nay')">Nay</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function voteBill(idx, vote) {
+    if (vote === 'aye') state.bills[idx].ayes++;
+    if (vote === 'nay') state.bills[idx].nays++;
+    showToast(`Voted ${vote.toUpperCase()} on ${state.bills[idx].code}.`);
     updateUI();
-
-    const logBox = document.getElementById("electionLog");
-    logBox.innerHTML += `<div class="log-item">> AI ELECTION CONCLUDED: Projected Seats won: ${projectedSeats}/${state.seats} (Approval: ${state.player.approval}%).</div>`;
-    logBox.scrollTop = logBox.scrollHeight;
   }
 
-  function updateTax(type, val) {
-    if (type === 'income') {
-      document.getElementById("incomeTaxLabel").innerText = val + "%";
-      if (val > 35) state.demographics[0].satisfaction = Math.max(10, state.demographics[0].satisfaction - 3);
-    } else if (type === 'corp') {
-      document.getElementById("corpTaxLabel").innerText = val + "%";
-      if (val < 20) state.demographics.satisfaction = Math.min(100, state.demographics.satisfaction + 4);
+  function uploadLocalPortrait(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        state.player.portrait = evt.target.result;
+        document.getElementById("portraitPreview").src = state.player.portrait;
+        state.candidates.photo = state.player.portrait;
+        showToast("Custom portrait uploaded successfully!");
+        updateUI();
+      };
+      reader.readAsDataURL(file);
     }
-    updateUI();
-    renderDemographics();
   }
 
-  function tableLaw(lawType) {
-    if (state.player.pp >= 25) {
-      state.player.pp -= 25;
-      if (lawType === 'healthcare') {
-        state.demographics[0].satisfaction = Math.min(100, state.demographics[0].satisfaction + 8);
-        logParliament("Universal Healthcare Bill passed.");
-      } else if (lawType === 'lobby') {
-        state.govSeats = Math.min(state.seats, state.govSeats + 5);
-        logParliament("Lobbied opposition MPs (+5 Seats gained).");
-      }
-      updateUI();
-      renderDemographics();
-    } else alert("Insufficient Political Power (PP).");
-  }
-
-  function buyCrypto(type) {
-    if (state.player.cash >= 9200) {
-      state.player.cash -= 9200;
-      state.player.btc++;
-      alert("1 BTC purchased!");
+  function updatePortraitUrl(url) {
+    if (url) {
+      state.player.portrait = url;
+      document.getElementById("portraitPreview").src = url;
+      state.candidates.photo = url;
+      showToast("Portrait image URL updated!");
       updateUI();
     }
   }
 
-  function createCorp() {
-    if (state.player.cash >= 100000) {
-      state.player.cash -= 100000;
-      alert("Public Corporation founded!");
+  function updateCharName(val) {
+    if (val) {
+      state.player.name = val;
+      state.candidates.name = val + " (You)";
       updateUI();
     }
   }
 
-  function subversiveAction(type) {
-    if (type === 'bribe' && state.player.cash >= 25000) {
-      state.player.cash -= 25000;
-      state.player.inf += 20;
-      alert("Official bribed! +20 INF gained.");
+  function saveProfile() {
+    showToast("Profile settings saved successfully!");
+  }
+
+  function executeAction(type, powerCost, fundsCost) {
+    if (state.player.power >= powerCost && state.player.funds >= fundsCost) {
+      state.player.power -= powerCost;
+      state.player.funds -= fundsCost;
+      showToast(`${type} executed successfully!`);
       updateUI();
+    } else {
+      showToast("Insufficient Power or Funds!");
     }
   }
 
-  function triggerCoup() {
-    alert(`🚨 MILITARY COUP LAUNCHED BY ${state.player.name}!`);
-    logParliament("🚨 Coup attempt executed!");
-  }
-
-  function sendChatMessage() {
-    const input = document.getElementById("chatInput");
-    if (input.value) {
-      const box = document.getElementById("worldChatBox");
-      box.innerHTML += `<div class="log-item"><b>${state.player.name}:</b> ${input.value}</div>`;
-      input.value = "";
-      box.scrollTop = box.scrollHeight;
-    }
-  }
-
-  function switchTab(tabId, evt) {
-    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-page').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).style.display = 'block';
-    evt.target.classList.add('active');
   }
 
-  function logParliament(msg) {
-    const box = document.getElementById("parliamentLog");
-    box.innerHTML += `<div class="log-item">> ${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
-  }
+  updateUI();
 </script>
 
 </body>
