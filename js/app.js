@@ -1,6 +1,6 @@
 /* ==========================================================================
    POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
-   Game Engine & Application Logic ("A House Divided" Sleek Edition)
+   Game Engine & Application Logic ("A House Divided" Pure Player Edition)
    ========================================================================== */
 
 /* 34+ Million Real Malaysian Population & Registered Voter Breakdown */
@@ -24,8 +24,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-energy",
     exchange: "Bursa Main",
     price: 18.50,
-    dividend: 0.85, // MYR Dividend per share / day
-    owned: 200,     // Starting owned shares
+    dividend: 0.85,
+    owned: 200,
     mktCap: "MYR 36.6B",
     dailyRev: "+MYR 8.5M/d",
     logo: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b2?w=100&auto=format&fit=crop",
@@ -112,33 +112,33 @@ const MALAYSIAN_COMMODITIES = [
   { name: "Gold (999 Physical Gold)", unit: "Gram", price: "MYR 345", daily: "+MYR 6/d", sectorClass: "sector-realestate" }
 ];
 
-/* Real Malaysian Political Parties & Coalitions */
+/* Real Malaysian Political Parties - NO NPC LEADERS */
 const REAL_MALAYSIAN_PARTIES = [
-  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "Anwar Ibrahim", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
-  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "Muhyiddin Yassin", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
-  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "Ahmad Zahid Hamidi", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
-  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "Abang Johari Openg", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
-  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "Hajiji Noor", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
-  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "Shafie Apdal", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
-  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "Syed Saddiq", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
+  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
+  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
+  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
+  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
+  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
+  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
+  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
 ];
 
-/* 14 Malaysian States/Territories */
+/* 14 Malaysian States/Territories - NO NPC MENTERI BESAR */
 const STATE_SEATS = {
-  "Selangor": { seats: 56, pop: "7.2M", voters: "3.8M", mb: "Amirudin Shari (Selangor MB)", gov: "Pakatan Harapan (34 Kerusi)" },
-  "Johor": { seats: 56, pop: "4.1M", voters: "2.6M", mb: "Onn Hafiz Ghazi (Johor MB)", gov: "Barisan Nasional (40 Kerusi)" },
-  "Sabah": { seats: 73, pop: "3.4M", voters: "1.7M", mb: "Hajiji Noor (Sabah CM)", gov: "GRS Alliance (44 Kerusi)" },
-  "Sarawak": { seats: 82, pop: "2.9M", voters: "1.9M", mb: "Abang Johari Openg (Sarawak Premier)", gov: "GPS Alliance (76 Kerusi)" },
-  "Perak": { seats: 59, pop: "2.5M", voters: "1.6M", mb: "Saarani Mohamad (Perak MB)", gov: "Unity Alliance (33 Kerusi)" },
-  "Kedah": { seats: 36, pop: "2.2M", voters: "1.3M", mb: "Muhammad Sanusi Md Nor (Kedah MB)", gov: "Perikatan Nasional (33 Kerusi)" },
+  "Selangor": { seats: 56, pop: "7.2M", voters: "3.8M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Johor": { seats: 56, pop: "4.1M", voters: "2.6M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Sabah": { seats: 73, pop: "3.4M", voters: "1.7M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Sarawak": { seats: 82, pop: "2.9M", voters: "1.9M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Perak": { seats: 59, pop: "2.5M", voters: "1.6M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Kedah": { seats: 36, pop: "2.2M", voters: "1.3M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
   "Wilayah Persekutuan": { seats: 0, pop: "2.0M", voters: "1.1M", mb: "Ditadbir Persekutuan (Menteri WP)", gov: "Kerajaan Persekutuan" },
-  "Kelantan": { seats: 45, pop: "1.8M", voters: "1.2M", mb: "Mohd Nassuruddin Daud (Kelantan MB)", gov: "Perikatan Nasional (42 Kerusi)" },
-  "Pulau Pinang": { seats: 40, pop: "1.8M", voters: "1.2M", mb: "Chow Kon Yeow (Penang CM)", gov: "Pakatan Harapan (29 Kerusi)" },
-  "Pahang": { seats: 42, pop: "1.6M", voters: "1.0M", mb: "Wan Rosdy Wan Ismail (Pahang MB)", gov: "Barisan Nasional (24 Kerusi)" },
-  "Terengganu": { seats: 32, pop: "1.3M", voters: "0.9M", mb: "Ahmad Samsuri Mokhtar (Terengganu MB)", gov: "Perikatan Nasional (32 Kerusi)" },
-  "Negeri Sembilan": { seats: 36, pop: "1.2M", voters: "0.8M", mb: "Aminuddin Harun (N.Sembilan MB)", gov: "Pakatan Harapan (31 Kerusi)" },
-  "Melaka": { seats: 28, pop: "1.0M", voters: "0.7M", mb: "Ab Rauf Yusoh (Melaka CM)", gov: "Barisan Nasional (21 Kerusi)" },
-  "Perlis": { seats: 15, pop: "0.3M", voters: "0.2M", mb: "Mohd Shukri Ramli (Perlis MB)", gov: "Perikatan Nasional (14 Kerusi)" }
+  "Kelantan": { seats: 45, pop: "1.8M", voters: "1.2M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Pulau Pinang": { seats: 40, pop: "1.8M", voters: "1.2M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Pahang": { seats: 42, pop: "1.6M", voters: "1.0M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Terengganu": { seats: 32, pop: "1.3M", voters: "0.9M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Negeri Sembilan": { seats: 36, pop: "1.2M", voters: "0.8M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Melaka": { seats: 28, pop: "1.0M", voters: "0.7M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" },
+  "Perlis": { seats: 15, pop: "0.3M", voters: "0.2M", mb: "[Belum Dilantik - Menunggu PRN]", gov: "Kerajaan Negeri Pemain" }
 };
 
 function majorityOf(seats) {
@@ -182,12 +182,12 @@ function defaultGameState() {
       { id: 1, name: "Sentral Gaming Malaysia Sdn Bhd", sector: "Gaming & Technology", val: "MYR 250,000", dailyDiv: "MYR 12,500/d" }
     ],
     cabinet: {
-      finance: "Rafizi Ramli (Menteri Kewangan)",
-      defense: "Mohamad Hasan (Menteri Pertahanan)",
-      home: "Saifuddin Nasution (Menteri Dalam Negeri)",
-      education: "Fadhlina Sidek (Menteri Pendidikan)",
-      health: "Dzulkefly Ahmad (Menteri Kesihatan)",
-      foreign: "Zambry Abdul Kadir (Menteri Luar Negeri)"
+      finance: "[Belum Dilantik - Pilih Ahli]",
+      defense: "[Belum Dilantik - Pilih Ahli]",
+      home: "[Belum Dilantik - Pilih Ahli]",
+      education: "[Belum Dilantik - Pilih Ahli]",
+      health: "[Belum Dilantik - Pilih Ahli]",
+      foreign: "[Belum Dilantik - Pilih Ahli]"
     },
     sprmAudit: { status: "Bersih", risk: "Rendah", activeInvestigations: 0 },
     pdrmStatus: { orderLevel: "Aman", riotRisk: "Rendah", officersDeployed: 12000 },
@@ -201,18 +201,16 @@ function defaultGameState() {
     parties: JSON.parse(JSON.stringify(REAL_MALAYSIAN_PARTIES)),
     states: defaultStates(),
     lobbies: [
-      { group: "PETRONAS Energy & Petroleum", head: "Dato' Azman", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 120, natStr: 95, rel: 65 },
-      { group: "Palm Oil & Plantation Guild (MPOB)", head: "Tan Sri Lim", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", stateStr: 90, natStr: 85, rel: 55 },
-      { group: "Banking & Islamic Finance Consortium", head: "Tengku Zafrul", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 110, natStr: 90, rel: 60 }
+      { group: "PETRONAS Energy & Petroleum", head: "Konsortium PETRONAS", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 120, natStr: 95, rel: 65 },
+      { group: "Palm Oil & Plantation Guild (MPOB)", head: "Konsortium Sawit", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", stateStr: 90, natStr: 85, rel: 55 },
+      { group: "Banking & Islamic Finance Consortium", head: "Konsortium Perbankan", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 110, natStr: 90, rel: 60 }
     ],
     bills: [
       { code: "RUU.2020: Pakej Rangsangan Ekonomi", law: "Dana Bantuan Perniagaan & Infrastruktur", ayes: 118, nays: 90, abstentions: 14, author: "Wan Luqman", timer: "23 jam" },
       { code: "RUU.2021: Akta Cukai E-Dagang & Teknologi", law: "Kerangka Perlesenan Ekonomi Digital", ayes: 112, nays: 98, abstentions: 12, author: "Jawatankuasa Dewan", timer: "12 jam" }
     ],
     roster: [
-      { name: "Wan Luqman (Anda)", power: 220, inf: 85, role: "Pengerusi / Presiden Parti" },
-      { name: "Syed Saddiq", power: 180, inf: 70, role: "Ketua Pemuda" },
-      { name: "Rafizi Ramli", power: 150, inf: 65, role: "Pengarah Ekonomi" }
+      { name: "Wan Luqman (Anda)", power: 220, inf: 85, role: "Pengerusi / Presiden Parti" }
     ],
     spectrum: ["Extremely Left Wing", "Very Left Wing", "Left Wing", "Center Left", "Centrist", "Center Right", "Right Wing", "Extremely Right Wing"],
     econPos: 4,
@@ -242,7 +240,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.warn("Supabase session check error:", err);
   }
 
-  // Show Auth Modal immediately with no delay
   document.getElementById("authModal").style.display = "flex";
 });
 
@@ -648,7 +645,7 @@ function resetElectionCycle() {
     p.polling = (Math.random() * 25 + 10);
     p.seats = Math.round(222 * (p.polling / 100));
   });
-  showToast("🗳 1 WEEKS IRL ELECTION RESET: Parlimen dibubarkan & kerusi dikemaskini secara automatik!");
+  showToast("力 1 WEEKS IRL ELECTION RESET: Parlimen dibubarkan & kerusi dikemaskini secara automatik!");
   updateUI();
   queueSave();
 }
