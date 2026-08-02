@@ -1,3 +1,0 @@
-{ "type": "FeatureCollection", "features": [
-  { "type": "Feature", "id": "m001", "properties": { "name": "Contoh Kawasan 1", "id": "m001" }, "geometry": { "type": "Polygon", "coordinates": [[[101.6,4.0],[101.8,4.0],[101.8,4.2],[101.6,4.2],[101.6,4.0]]] } }
-] }
