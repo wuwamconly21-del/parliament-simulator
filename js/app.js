@@ -227,23 +227,13 @@ let currentUser = null;
 let lastMidnightReset = null;
 let saveTimer = null;
 
-/* Boot & Auth Handling */
+/* Instant Boot & Auth Handling - Zero Loading Screen Delay */
 window.addEventListener("DOMContentLoaded", async () => {
-  const forceDismissTimeout = setTimeout(() => {
-    const bootLoader = document.getElementById("bootLoader");
-    if (bootLoader && bootLoader.style.display !== "none") {
-      console.warn("Supabase network timeout reached. Falling back to local auth modal.");
-      bootLoader.style.display = "none";
-      document.getElementById("authModal").style.display = "flex";
-    }
-  }, 2500);
-
   try {
     if (sb && sb.auth) {
-      const { data, error } = await sb.auth.getSession();
+      const { data } = await sb.auth.getSession();
       if (data && data.session && data.session.user) {
         currentUser = data.session.user;
-        clearTimeout(forceDismissTimeout);
         await routeAfterAuth();
         return;
       }
@@ -252,8 +242,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.warn("Supabase session check error:", err);
   }
 
-  clearTimeout(forceDismissTimeout);
-  document.getElementById("bootLoader").style.display = "none";
+  // Show Auth Modal immediately with no delay
   document.getElementById("authModal").style.display = "flex";
 });
 
@@ -267,7 +256,6 @@ async function routeAfterAuth() {
       const { data: profile } = await sb.from("player_profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
 
       if (!profile) {
-        document.getElementById("bootLoader").style.display = "none";
         document.getElementById("setupScreen").style.display = "block";
         document.getElementById("charName").value = currentUser.email.split("@")[0];
         return;
@@ -309,7 +297,6 @@ async function routeAfterAuth() {
     console.warn("DB route load fallback:", err);
   }
 
-  document.getElementById("bootLoader").style.display = "none";
   document.getElementById("dashboardScreen").style.display = "block";
   document.getElementById("mainHeader").style.display = "flex";
   document.getElementById("mainFooter").style.display = "flex";
@@ -1423,6 +1410,4 @@ function switchTab(tabId) {
   if (tabId === 'tabPortfolio') {
     updateUI();
   }
-}
-EOF
 }
