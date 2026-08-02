@@ -1,22 +1,23 @@
 /* ==========================================================================
    POWER - Malaysia Geopolitics & Real-Time Midnight Simulator
-   Stylesheet: Modern Dark Glassmorphism Theme
+   Theme: "A House Divided" Sleek Dark Navy & Neon Red/Blue UI Overhaul
    ========================================================================== */
 
 :root {
-  --bg-primary: #080c14;
-  --bg-secondary: #101726;
-  --bg-card: rgba(22, 31, 48, 0.85);
-  --bg-hover: #1e293b;
-  --accent: #38bdf8;
-  --accent-hover: #0284c7;
-  --text-main: #f8fafc;
+  --bg-primary: #0a0f1d;
+  --bg-secondary: #111a2e;
+  --bg-card: rgba(17, 28, 48, 0.9);
+  --bg-hover: #1e2d4a;
+  --accent-red: #ef4444;
+  --accent-red-hover: #dc2626;
+  --accent-blue: #38bdf8;
+  --text-main: #ffffff;
   --text-muted: #94a3b8;
   --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #10b981;
+  --warning: #eab308;
+  --success: #22c55e;
   --purple: #a855f7;
-  --border: #26334d;
+  --border: #1e2d4a;
 }
 
 * {
@@ -30,13 +31,13 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-main);
   line-height: 1.5;
-  padding-bottom: 60px;
+  padding-bottom: 70px;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
@@ -46,13 +47,45 @@ body {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+  background: var(--accent-red);
 }
 
 .container {
-  max-width: 1200px;
-  margin: 20px auto;
+  max-width: 1100px;
+  margin: 15px auto;
   padding: 0 15px;
+}
+
+/* Top Ticker Tape Bar (Bursa Malaysia Stocks) */
+.ticker-tape {
+  background: #070b16;
+  border-bottom: 1px solid var(--border);
+  height: 32px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ticker-content {
+  display: flex;
+  gap: 30px;
+  white-space: nowrap;
+  animation: tickerSlide 25s linear infinite;
+}
+
+.ticker-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ticker-green { color: var(--success); }
+.ticker-red { color: var(--danger); }
+
+@keyframes tickerSlide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 /* Boot & Loading Overlays */
@@ -76,7 +109,7 @@ body {
   width: 24px;
   height: 24px;
   border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--accent);
+  border-top-color: var(--accent-red);
   border-radius: 50%;
   display: inline-block;
   animation: spin 0.7s linear infinite;
@@ -89,7 +122,7 @@ body {
 #authModal {
   position: fixed;
   inset: 0;
-  background: rgba(4, 6, 12, 0.92);
+  background: rgba(4, 6, 12, 0.94);
   backdrop-filter: blur(16px);
   display: flex;
   align-items: center;
@@ -98,13 +131,13 @@ body {
 }
 
 .auth-box {
-  background: rgba(16, 23, 38, 0.92);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: var(--bg-secondary);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 16px;
   width: 440px;
   max-width: 92vw;
   padding: 32px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(239, 68, 68, 0.15);
 }
 
 .auth-header {
@@ -112,7 +145,7 @@ body {
   margin-bottom: 20px;
 }
 .auth-header h2 {
-  color: var(--accent);
+  color: var(--accent-red);
   font-size: 22px;
   margin-bottom: 4px;
 }
@@ -143,9 +176,9 @@ body {
 }
 
 .auth-tab-btn.active {
-  background: var(--accent);
-  color: #0f172a;
-  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+  background: var(--accent-red);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
 }
 
 .auth-error {
@@ -173,8 +206,8 @@ header.top-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  height: 50px;
+  padding: 0 18px;
+  height: 48px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -184,18 +217,18 @@ header.top-nav {
 
 .nav-links {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
 }
 
 .nav-item {
-  color: #cbd5e1;
+  color: #94a3b8;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 12px;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 6px;
   transition: all 0.2s;
 }
@@ -207,25 +240,12 @@ header.top-nav {
 }
 
 .badge {
-  background: #334155;
+  background: #1e2d4a;
   color: #fff;
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 10px;
   margin-left: 4px;
-}
-
-.myt-clock-box {
-  background: rgba(8, 12, 20, 0.9);
-  border: 1px solid var(--accent);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: bold;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .save-status {
@@ -243,60 +263,209 @@ header.top-nav {
   position: fixed;
   top: 60px;
   right: 20px;
-  background: #1e293b;
-  border: 1px solid #38bdf8;
+  background: #111a2e;
+  border: 1px solid var(--accent-red);
   color: #f8fafc;
   padding: 12px 18px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
   display: none;
   z-index: 1000;
   font-weight: 500;
   max-width: 320px;
 }
-#toastBanner.error { border-color: var(--danger); }
 
 .map-banner {
-  background: linear-gradient(rgba(8, 12, 20, 0.85), rgba(8, 12, 20, 0.95)),
+  background: linear-gradient(rgba(10, 15, 29, 0.85), rgba(10, 15, 29, 0.95)),
               url('https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=1200&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
   border-radius: 12px;
   border: 1px solid var(--border);
-  padding: 28px;
+  padding: 24px;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .election-badge {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(17, 28, 48, 0.9);
   display: inline-block;
-  padding: 6px 18px;
+  padding: 5px 16px;
   border-radius: 20px;
   font-weight: bold;
-  color: var(--accent);
+  color: var(--accent-red);
   border: 1px solid var(--border);
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 22px;
-  margin-bottom: 20px;
-  backdrop-filter: blur(8px);
+  padding: 20px;
+  margin-bottom: 18px;
 }
 
 .card-title {
   font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  text-align: center;
-  color: #f8fafc;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #ffffff;
 }
 
+/* Stock Market Header & Stat Grid ("A House Divided" Style) */
+.market-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sub-tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(10, 15, 29, 0.8);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.sub-tab-btn {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.sub-tab-btn.active {
+  background: var(--accent-red);
+  color: #fff;
+}
+
+.stats-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background: rgba(10, 15, 29, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.stat-box .stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.stat-box .stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-top: 4px;
+}
+
+/* Stock Card Item */
+.stock-item-card {
+  background: rgba(10, 15, 29, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+.stock-item-card:hover {
+  border-color: var(--accent-red);
+  background: rgba(17, 28, 48, 0.8);
+}
+
+.stock-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stock-rank {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-muted);
+  width: 20px;
+}
+
+.stock-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.stock-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sector-pill {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+.sector-manufacturing { background: rgba(234, 88, 12, 0.25); color: #fb923c; border: 1px solid #ea580c; }
+.sector-realestate { background: rgba(202, 138, 4, 0.25); color: #facc15; border: 1px solid #ca8a04; }
+.sector-retail { background: rgba(124, 58, 237, 0.25); color: #c084fc; border: 1px solid #7c3aed; }
+.sector-banking { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid #0284c7; }
+.sector-energy { background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid #10b981; }
+
+.stock-mktcap {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stock-right {
+  text-align: right;
+}
+
+.stock-price {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.stock-daily {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--success);
+  margin-top: 2px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 3px;
+  background: #1e2d4a;
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent-red);
+  border-radius: 2px;
+}
+
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -323,12 +492,13 @@ tr:hover {
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* Buttons ("A House Divided" Neon Red Primary Buttons) */
 button {
   cursor: pointer;
-  padding: 9px 16px;
+  padding: 8px 15px;
   border-radius: 8px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 12px;
   transition: all 0.2s;
   display: inline-flex;
@@ -342,44 +512,32 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.btn-primary, .btn-blue {
-  background: linear-gradient(135deg, #38bdf8, #0284c7);
-  color: #0f172a;
+.btn-primary, .btn-red {
+  background: var(--accent-red);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
 }
-.btn-primary:hover, .btn-blue:hover {
+.btn-primary:hover, .btn-red:hover {
+  background: var(--accent-red-hover);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.5);
+}
+
+.btn-blue {
   background: linear-gradient(135deg, #0284c7, #0369a1);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
-}
-
-.btn-danger, .btn-red {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-}
-
-.btn-warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .btn-success, .btn-green {
   background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  color: #ffffff;
 }
 
 .btn-purple {
   background: linear-gradient(135deg, #a855f7, #7e22ce);
-  color: white;
+  color: #ffffff;
 }
 
-.candidate-portrait {
-  width: 55px;
-  height: 65px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
+/* Avatars & Profiles */
 .party-logo, .lobby-head-photo {
   width: 32px;
   height: 32px;
@@ -389,87 +547,106 @@ button:disabled {
 
 .profile-grid {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 24px;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
 }
 
 .portrait-upload-box {
   text-align: center;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 18px;
+  background: rgba(10, 15, 29, 0.5);
+  padding: 16px;
   border-radius: 10px;
   border: 1px dashed var(--border);
 }
 
 .profile-photo-preview {
-  width: 160px;
-  height: 200px;
+  width: 150px;
+  height: 180px;
   object-fit: cover;
   border-radius: 8px;
   border: 2px solid var(--border);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
+/* FIXED BOTTOM APP BAR ("A House Divided" Mobile Bar) */
 footer.status-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 34px;
-  background: #0b111e;
+  height: 48px;
+  background: #070b16;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 35px;
-  font-weight: bold;
-  font-size: 13px;
-  z-index: 100;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-weight: 700;
+  font-size: 12px;
+  z-index: 1000;
 }
 
-.stat-pp { color: #a855f7; }
-.stat-funds { color: #10b981; }
+.bottom-left-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #cbd5e1;
+}
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.bottom-right-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-badge-red {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  padding: 4px 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-badge-green {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid var(--success);
+  color: var(--success);
+  padding: 4px 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Grid & Responsive */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
 @media (max-width: 800px) {
-  .grid-2, .grid-3, .profile-grid {
+  .grid-2, .grid-3, .grid-4, .profile-grid, .stats-grid-3 {
     grid-template-columns: 1fr;
   }
 }
 
-.form-group {
-  margin-bottom: 14px;
-}
-
-label {
-  display: block;
-  margin-bottom: 4px;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-textarea,
-select {
+/* Forms */
+.form-group { margin-bottom: 12px; }
+label { display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-muted); font-size: 11px; }
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
   width: 100%;
-  padding: 9px 12px;
-  background: rgba(8, 12, 20, 0.8);
+  padding: 8px 12px;
+  background: rgba(10, 15, 29, 0.8);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-main);
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.2s;
 }
-
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+  border-color: var(--accent-red);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
 }
