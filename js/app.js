@@ -1,8 +1,83 @@
 /* ==========================================================================
    POWER - Malaysia Geopolitics & Real-Time Midnight Simulator
-   Game Engine & Application Logic
+   Game Engine & Application Logic (Overhauled Edition)
    ========================================================================== */
 
+/* Real Malaysian Political Parties & Coalitions */
+const REAL_MALAYSIAN_PARTIES = [
+  { 
+    id: "ph", 
+    name: "Pakatan Harapan (PH)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", 
+    color: "#ef4444", 
+    seats: 82, 
+    polling: 36.8, 
+    leader: "Anwar Ibrahim", 
+    ideology: "Social Democracy / Reformist" 
+  },
+  { 
+    id: "pn", 
+    name: "Perikatan Nasional (PN)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", 
+    color: "#0284c7", 
+    seats: 74, 
+    polling: 33.2, 
+    leader: "Muhyiddin Yassin", 
+    ideology: "Conservatism / Malay-Muslim Unity" 
+  },
+  { 
+    id: "bn", 
+    name: "Barisan Nasional (BN)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", 
+    color: "#1e3a8a", 
+    seats: 30, 
+    polling: 18.5, 
+    leader: "Ahmad Zahid Hamidi", 
+    ideology: "Traditional Conservatism / Nationalism" 
+  },
+  { 
+    id: "gps", 
+    name: "Gabungan Parti Sarawak (GPS)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", 
+    color: "#f59e0b", 
+    seats: 23, 
+    polling: 6.2, 
+    leader: "Abang Johari Openg", 
+    ideology: "Regional Autonomy / Sarawak First" 
+  },
+  { 
+    id: "grs", 
+    name: "Gabungan Rakyat Sabah (GRS)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", 
+    color: "#10b981", 
+    seats: 6, 
+    polling: 2.8, 
+    leader: "Hajiji Noor", 
+    ideology: "Sabah Regional Autonomy" 
+  },
+  { 
+    id: "warisan", 
+    name: "Parti Warisan (WARISAN)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", 
+    color: "#a855f7", 
+    seats: 3, 
+    polling: 1.5, 
+    leader: "Shafie Apdal", 
+    ideology: "Multiracialism / Sabah Unity" 
+  },
+  { 
+    id: "muda", 
+    name: "Ikatan Demokratik Malaysia (MUDA)", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", 
+    color: "#f43f5e", 
+    seats: 1, 
+    polling: 1.0, 
+    leader: "Syed Saddiq", 
+    ideology: "Youth Politics / Progressive" 
+  }
+];
+
+/* 14 Malaysian States/Territories & Real DUN Seat Counts */
 const STATE_SEATS = {
   "Johor": 56, "Kedah": 36, "Kelantan": 45, "Melaka": 28,
   "Negeri Sembilan": 36, "Pahang": 42, "Perak": 59, "Perlis": 15,
@@ -16,19 +91,19 @@ function majorityOf(seats) {
 
 function defaultStates() {
   const base = {
-    "Johor": { mb: "Onn Hafiz Ghazi (Johor MB)", gov: "Barisan Nasional (30 Kerusi)" },
-    "Kedah": { mb: "Muhammad Sanusi Md Nor (Kedah MB)", gov: "Perikatan Nasional (20 Kerusi)" },
-    "Kelantan": { mb: "Mohd Nassuruddin Daud (Kelantan MB)", gov: "Perikatan Nasional (41 Kerusi)" },
-    "Melaka": { mb: "Ab Rauf Yusoh (Melaka CM)", gov: "Barisan Nasional (16 Kerusi)" },
-    "Negeri Sembilan": { mb: "Aminuddin Harun (N.Sembilan MB)", gov: "Pakatan Harapan (22 Kerusi)" },
+    "Johor": { mb: "Onn Hafiz Ghazi (Johor MB)", gov: "Barisan Nasional (40 Kerusi)" },
+    "Kedah": { mb: "Muhammad Sanusi Md Nor (Kedah MB)", gov: "Perikatan Nasional (33 Kerusi)" },
+    "Kelantan": { mb: "Mohd Nassuruddin Daud (Kelantan MB)", gov: "Perikatan Nasional (42 Kerusi)" },
+    "Melaka": { mb: "Ab Rauf Yusoh (Melaka CM)", gov: "Barisan Nasional (21 Kerusi)" },
+    "Negeri Sembilan": { mb: "Aminuddin Harun (N.Sembilan MB)", gov: "Pakatan Harapan (31 Kerusi)" },
     "Pahang": { mb: "Wan Rosdy Wan Ismail (Pahang MB)", gov: "Barisan Nasional (24 Kerusi)" },
     "Perak": { mb: "Saarani Mohamad (Perak MB)", gov: "Unity Alliance (33 Kerusi)" },
-    "Perlis": { mb: "Mohd Shukri Ramli (Perlis MB)", gov: "Perikatan Nasional (10 Kerusi)" },
+    "Perlis": { mb: "Mohd Shukri Ramli (Perlis MB)", gov: "Perikatan Nasional (14 Kerusi)" },
     "Pulau Pinang": { mb: "Chow Kon Yeow (Penang CM)", gov: "Pakatan Harapan (29 Kerusi)" },
     "Sabah": { mb: "Hajiji Noor (Sabah CM)", gov: "GRS Alliance (44 Kerusi)" },
     "Sarawak": { mb: "Abang Johari Openg (Sarawak Premier)", gov: "GPS Alliance (76 Kerusi)" },
     "Selangor": { mb: "Amirudin Shari (Selangor MB)", gov: "Pakatan Harapan (34 Kerusi)" },
-    "Terengganu": { mb: "Ahmad Samsuri Mokhtar (Terengganu MB)", gov: "Perikatan Nasional (24 Kerusi)" },
+    "Terengganu": { mb: "Ahmad Samsuri Mokhtar (Terengganu MB)", gov: "Perikatan Nasional (32 Kerusi)" },
     "Wilayah Persekutuan": { mb: "Ditadbir Kerajaan Persekutuan (Menteri WP)", gov: "Kerajaan Persekutuan" }
   };
   const out = {};
@@ -41,7 +116,7 @@ function defaultStates() {
 function defaultGameState() {
   return {
     player: {
-      name: "Ahli Politik Baharu",
+      name: "Wan Luqman",
       pp: 50.0,
       funds: 500000,
       portrait: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop",
@@ -50,14 +125,11 @@ function defaultGameState() {
       reputation: 68.5,
       btc: 0,
       bio: "Memacu reformasi ekonomi, kebajikan rakyat dan perpaduan nasional.",
-      partyName: "Gabungan Reformasi Rakyat",
-      ideology: "Social Democracy"
+      partyName: "Pakatan Harapan (PH)",
+      ideology: "Social Democracy / Reformist",
+      role: "Presiden Parti / Calon PM"
     },
-    candidates: [
-      { name: "Dato' Sri Haris", party: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", strength: 5253.3, polling: 48.5, votes: 5430210, electoral: 108 },
-      { name: "Tan Sri Razak", party: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop", strength: 5120.5, polling: 42.0, votes: 4878521, electoral: 95 },
-      { name: "Ahli Politik Baharu (You)", party: "Gabungan Reformasi Rakyat", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop", strength: 350.0, polling: 9.5, votes: 1243559, electoral: 19 }
-    ],
+    parties: JSON.parse(JSON.stringify(REAL_MALAYSIAN_PARTIES)),
     states: defaultStates(),
     lobbies: [
       { group: "PETRONAS Energy & Petroleum", head: "Dato' Azman", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 120, natStr: 95, rel: 65 },
@@ -65,11 +137,11 @@ function defaultGameState() {
       { group: "Banking & Islamic Finance Consortium", head: "Tengku Zafrul", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 110, natStr: 90, rel: 60 }
     ],
     bills: [
-      { code: "RUU: Pakej Rangsangan Ekonomi", law: "Dana Bantuan Perniagaan & Infrastruktur", ayes: 118, nays: 90, abstentions: 14, author: "Anda", timer: "23 jam" },
-      { code: "RUU: Akta Cukai E-Dagang & Teknologi", law: "Kerangka Perlesenan Ekonomi Digital", ayes: 112, nays: 98, abstentions: 12, author: "Jawatankuasa Dewan", timer: "12 jam" }
+      { code: "RUU.2020: Pakej Rangsangan Ekonomi", law: "Dana Bantuan Perniagaan & Infrastruktur", ayes: 118, nays: 90, abstentions: 14, author: "Wan Luqman", timer: "23 jam" },
+      { code: "RUU.2021: Akta Cukai E-Dagang & Teknologi", law: "Kerangka Perlesenan Ekonomi Digital", ayes: 112, nays: 98, abstentions: 12, author: "Jawatankuasa Dewan", timer: "12 jam" }
     ],
     roster: [
-      { name: "Anda (Pengerusi)", power: 220, inf: 85, role: "Pengerusi Parti" },
+      { name: "Wan Luqman (Anda)", power: 220, inf: 85, role: "Pengerusi / Presiden Parti" },
       { name: "Syed Saddiq", power: 180, inf: 70, role: "Ketua Pemuda" },
       { name: "Rafizi Ramli", power: 150, inf: 65, role: "Pengarah Ekonomi" }
     ],
@@ -141,7 +213,7 @@ async function routeAfterAuth() {
     state.player.btc = Number(gs.btc);
     state.econPos = gs.econ_position;
     state.socialPos = gs.social_position;
-    if (gs.candidates) state.candidates = gs.candidates;
+    if (gs.parties) state.parties = gs.parties;
     if (gs.states) state.states = gs.states;
     if (gs.lobbies) state.lobbies = gs.lobbies;
     if (gs.bills) state.bills = gs.bills;
@@ -240,24 +312,42 @@ async function initGame(e) {
   setBtnLoading("startGameBtn", true);
   const name = document.getElementById("charName").value;
   const baseState = document.getElementById("startNation").value;
-  const partyName = document.getElementById("partyName").value;
+  const selectedPartyChoice = document.getElementById("partySelect").value;
+  const customPartyName = document.getElementById("partyNameCustom").value;
   const ideology = document.getElementById("partyIdeology").value;
 
   state = defaultGameState();
   state.player.name = name;
   state.player.location = baseState + " / Malaysia";
-  state.player.partyName = partyName;
   state.player.ideology = ideology;
   state.selectedState = baseState;
-  state.candidates.name = name + " (You)";
-  state.candidates.party = partyName;
+
+  if (selectedPartyChoice === "custom") {
+    state.player.partyName = customPartyName || "Gabungan Reformasi Rakyat";
+    state.parties.unshift({
+      id: "player_party",
+      name: state.player.partyName,
+      logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg",
+      color: "#38bdf8",
+      seats: 15,
+      polling: 8.5,
+      leader: `${name} (Anda)`,
+      ideology: ideology
+    });
+  } else {
+    const targetParty = state.parties.find(p => p.id === selectedPartyChoice);
+    if (targetParty) {
+      state.player.partyName = targetParty.name;
+      targetParty.leader = `${name} (Anda)`;
+    }
+  }
 
   if (sb && currentUser) {
     await sb.from("player_profiles").upsert({
       user_id: currentUser.id,
       username: currentUser.email.split("@")[0],
       character_name: name,
-      party_name: partyName,
+      party_name: state.player.partyName,
       ideology: ideology,
       bio: state.player.bio,
       portrait_url: state.player.portrait,
@@ -275,7 +365,7 @@ async function initGame(e) {
 
   startMYTMidnightClock();
   updateUI();
-  showToast(`Selamat datang ${state.player.name}! Permainan bermula dengan MYR 500,000.`);
+  showToast(`Selamat datang ${state.player.name}! Mengambil alih ${state.player.partyName} dengan MYR 500,000 modal kempen.`);
 }
 
 function buildGameStateRow() {
@@ -288,7 +378,7 @@ function buildGameStateRow() {
     btc: state.player.btc,
     econ_position: state.econPos,
     social_position: state.socialPos,
-    candidates: state.candidates,
+    parties: state.parties,
     states: state.states,
     lobbies: state.lobbies,
     bills: state.bills,
@@ -375,6 +465,16 @@ function executeDailyMidnightReset() {
   queueSave();
 }
 
+function resetElectionCycle() {
+  state.parties.forEach(p => {
+    p.polling = (Math.random() * 25 + 10);
+    p.seats = Math.round(222 * (p.polling / 100));
+  });
+  showToast("🗳 Pilihan Raya Dimulakan Semula! Unjuran kerusi & polling dikemaskini.");
+  updateUI();
+  queueSave();
+}
+
 function showToast(msg, isError) {
   const banner = document.getElementById("toastBanner");
   banner.innerText = msg;
@@ -394,7 +494,7 @@ function updateUI() {
   document.getElementById("inputLocation").value = state.player.location;
 
   populateStateSelect();
-  renderCandidates();
+  renderPartiesAndCandidates();
   renderLobbies();
   renderBills();
   renderRoster();
@@ -422,38 +522,69 @@ function populateStateSelect() {
   sel.dataset.filled = "1";
 }
 
-function renderCandidates() {
+function renderPartiesAndCandidates() {
   const tbody = document.getElementById("candidateTableBody");
   tbody.innerHTML = "";
+
+  state.parties.sort((a, b) => b.seats - a.seats);
+  const leading = state.parties[0];
+
   document.getElementById("pmStatus").innerText =
-    `YAB Perdana Menteri: ${state.candidates[0].name} (Unjuran Kerusi Terbesar: ${state.candidates[0].electoral})`;
-  state.candidates.forEach((c, idx) => {
+    `YAB Perdana Menteri: ${leading.leader} (${leading.name} - ${leading.seats} Kerusi Dewan Rakyat)`;
+
+  state.parties.forEach((p, idx) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>
         <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${c.photo}" class="candidate-portrait">
-          <span style="font-weight:bold; color:#38bdf8">${c.name}</span>
+          <img src="${p.logo}" class="party-logo">
+          <span style="font-weight:bold; color:#38bdf8">${p.leader}</span>
         </div>
       </td>
       <td>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <img src="${c.logo}" class="party-logo">
-          <span>${c.party}</span>
-        </div>
+        <span style="font-weight:600; color:${p.color || '#38bdf8'}">${p.name}</span>
       </td>
-      <td style="font-weight:bold;">${c.strength.toFixed(1)}</td>
+      <td style="font-weight:bold;">${(p.seats * 15.2).toFixed(1)}</td>
       <td>
-        <div style="font-weight:bold;">${c.polling.toFixed(1)}%</div>
-        <div style="font-size:11px; color:var(--text-muted);">${c.votes.toLocaleString()} pengundi</div>
+        <div style="font-weight:bold;">${p.polling.toFixed(1)}%</div>
+        <div style="font-size:11px; color:var(--text-muted);">${(p.seats * 35000).toLocaleString()} pengundi</div>
       </td>
-      <td style="font-weight:bold;">${c.electoral} Kerusi</td>
+      <td style="font-weight:bold; color:var(--success);">${p.seats} Kerusi</td>
       <td>
-        <button class="btn-blue" onclick="campaignForCandidate(${idx})">Kempen Calon (10 PP, MYR 100k)</button>
+        <button class="btn-blue" onclick="campaignForParty(${idx})">📢 Kempen Parti (10 PP, MYR 100k)</button>
+        <button class="btn-purple" onclick="takeoverParty(${idx})">👑 Ambil Alih Parti</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+function campaignForParty(idx) {
+  if (state.player.pp >= 10 && state.player.funds >= 100000) {
+    state.player.pp -= 10;
+    state.player.funds -= 100000;
+    state.parties[idx].polling = Math.min(100, state.parties[idx].polling + 1.8);
+    state.parties[idx].seats = Math.min(222, state.parties[idx].seats + 3);
+
+    showToast(`Kempen dilancar untuk ${state.parties[idx].name}! Kerusi Dewan Rakyat meningkat.`);
+    updateUI();
+    queueSave();
+  } else {
+    showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 100,000!", true);
+  }
+}
+
+function takeoverParty(idx) {
+  if (state.player.pp >= 20) {
+    state.player.pp -= 20;
+    state.parties[idx].leader = `${state.player.name} (Anda)`;
+    state.player.partyName = state.parties[idx].name;
+    showToast(`Kepimpinan ${state.parties[idx].name} berjaya diambil alih oleh ${state.player.name}!`);
+    updateUI();
+    queueSave();
+  } else {
+    showToast("Memerlukan 20 PP untuk mengambil alih kepimpinan parti!", true);
+  }
 }
 
 function loadStateDUN(stateName) {
@@ -504,22 +635,6 @@ function renderMBRoster() {
       <td><button class="btn-blue" onclick="switchTab('tabStateDUN'); loadStateDUN('${st}'); document.getElementById('stateSelect').value='${st}';">Semak DUN</button></td>
     `;
     tbody.appendChild(tr);
-  }
-}
-
-function campaignForCandidate(idx) {
-  if (state.player.pp >= 10 && state.player.funds >= 100000) {
-    state.player.pp -= 10;
-    state.player.funds -= 100000;
-    state.candidates[idx].strength += 150.0;
-    state.candidates[idx].polling = Math.min(100, state.candidates[idx].polling + 1.8);
-    state.candidates[idx].electoral = Math.min(222, state.candidates[idx].electoral + 3);
-
-    showToast(`Kempen dilancar untuk ${state.candidates[idx].name}! Unjuran kerusi Dewan Rakyat meningkat.`);
-    updateUI();
-    queueSave();
-  } else {
-    showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 100,000!", true);
   }
 }
 
@@ -597,6 +712,34 @@ function renderRoster() {
   });
 }
 
+function runCeramahAction() {
+  if (state.player.pp >= 8 && state.player.funds >= 15000) {
+    state.player.pp -= 8;
+    state.player.funds -= 15000;
+    state.player.reputation = Math.min(100, state.player.reputation + 2.5);
+    showToast("📢 Ceramah Perdana & Jelajah Negeri selesai! Reputasi rakyat meningkat.");
+    updateUI();
+    queueSave();
+  } else showToast("Perlu 8 PP & MYR 15,000!", true);
+}
+
+function runSocialMediaCampaign() {
+  if (state.player.pp >= 12 && state.player.funds >= 25000) {
+    state.player.pp -= 12;
+    state.player.funds -= 25000;
+    showToast("📱 Kempen Media Sosial & Perang Persepsi berjaya dilancarkan!");
+    updateUI();
+    queueSave();
+  } else showToast("Perlu 12 PP & MYR 25,000!", true);
+}
+
+function runCorporateLobbying() {
+  state.player.funds += 100000;
+  showToast("💼 Persidangan Lobi Korporat berjaya! +MYR 100,000 Dana Kempen diperoleh.");
+  updateUI();
+  queueSave();
+}
+
 function convertCapital() {
   const amt = parseInt(document.getElementById("convertAmount").value);
   if (amt && state.player.funds >= amt) {
@@ -613,8 +756,10 @@ function runAttackAd() {
   if (state.player.pp >= 10 && state.player.funds >= 30000) {
     state.player.pp -= 10;
     state.player.funds -= 30000;
-    state.candidates[targetIdx].polling = Math.max(0, state.candidates[targetIdx].polling - 2.5);
-    showToast(`Iklan serangan dilancar terhadap ${state.candidates[targetIdx].name}! Polling pesaing menurun.`);
+    if (state.parties[targetIdx]) {
+      state.parties[targetIdx].polling = Math.max(0, state.parties[targetIdx].polling - 2.5);
+      showToast(`Iklan serangan dilancar terhadap ${state.parties[targetIdx].name}! Polling mereka menurun.`);
+    }
     updateUI();
     queueSave();
   } else showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 30,000!", true);
@@ -674,7 +819,6 @@ function uploadLocalPortrait(e) {
     reader.onload = function(evt) {
       state.player.portrait = evt.target.result;
       document.getElementById("portraitPreview").src = state.player.portrait;
-      state.candidates.photo = state.player.portrait;
       showToast("Foto calon berjaya dimuat naik!");
       updateUI();
       saveProfileToDb();
@@ -688,7 +832,6 @@ function updatePortraitUrl(url) {
   if (url) {
     state.player.portrait = url;
     document.getElementById("portraitPreview").src = url;
-    state.candidates.photo = url;
     showToast("URL gambar calon dikemaskini!");
     updateUI();
     saveProfileToDb();
@@ -699,7 +842,6 @@ function updatePortraitUrl(url) {
 function updateCharName(val) {
   if (val) {
     state.player.name = val;
-    state.candidates.name = val + " (You)";
     updateUI();
   }
 }
@@ -707,7 +849,6 @@ function updateCharName(val) {
 function saveProfile() {
   state.player.name = document.getElementById("inputCharName").value;
   state.player.bio = document.getElementById("inputCharBio").value;
-  state.candidates.name = state.player.name + " (You)";
   updateUI();
   saveProfileToDb();
   queueSave();
