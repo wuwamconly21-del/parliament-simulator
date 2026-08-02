@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Power & Political Process Simulator</title>
+  <title>POWER - Malaysia Two-Tier Parliament & State DUN Simulator (2020 Era)</title>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg-body: #121620;
@@ -23,24 +25,24 @@
     body { background-color: var(--bg-body); color: var(--text-main); font-size: 14px; padding-bottom: 50px; }
 
     header.top-nav { background: var(--bg-nav); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 48px; position: sticky; top: 0; z-index: 100; }
-    .nav-links { display: flex; gap: 15px; align-items: center; }
-    .nav-item { color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 13px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; }
+    .nav-links { display: flex; gap: 12px; align-items: center; }
+    .nav-item { color: #cbd5e1; text-decoration: none; font-weight: 500; font-size: 12px; cursor: pointer; padding: 6px 8px; border-radius: 4px; transition: all 0.2s; }
     .nav-item:hover, .nav-item.active { background: var(--bg-hover); color: #fff; }
     .badge { background: #475569; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 4px; }
 
-    .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+    .container { max-width: 1150px; margin: 20px auto; padding: 0 15px; }
 
     #toastBanner { position: fixed; top: 60px; right: 20px; background: #1e293b; border: 1px solid #38bdf8; color: #f8fafc; padding: 12px 18px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: none; z-index: 1000; font-weight: 500; }
 
-    .world-map-banner { background: linear-gradient(rgba(18, 22, 32, 0.85), rgba(18, 22, 32, 0.95)), url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1200&auto=format&fit=crop'); background-size: cover; background-position: center; border-radius: 8px; border: 1px solid var(--border-color); padding: 25px; text-align: center; margin-bottom: 20px; position: relative; }
+    .world-map-banner { background: linear-gradient(rgba(18, 22, 32, 0.85), rgba(18, 22, 32, 0.95)), url('https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=1200&auto=format&fit=crop'); background-size: cover; background-position: center; border-radius: 8px; border: 1px solid var(--border-color); padding: 25px; text-align: center; margin-bottom: 20px; position: relative; }
     .election-timer { background: rgba(30, 41, 59, 0.9); display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: bold; color: #38bdf8; border: 1px solid var(--border-color); margin-top: 10px; }
 
     .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
     .card-title { font-size: 20px; font-weight: 600; margin-bottom: 15px; text-align: center; color: #f8fafc; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-    th { color: var(--text-muted); font-size: 12px; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; font-weight: 600; background: rgba(0,0,0,0.2); }
     tr:hover { background: rgba(255,255,255,0.02); }
 
     .btn { cursor: pointer; padding: 8px 14px; border-radius: 4px; border: none; font-weight: 600; font-size: 12px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
@@ -48,11 +50,12 @@
     .btn-blue:hover { background: var(--accent-hover); }
     .btn-green { background: var(--success-green); color: #fff; }
     .btn-red { background: var(--danger-red); color: #fff; }
+    .btn-purple { background: #a855f7; color: #fff; }
     .btn-secondary { background: #334155; color: #f8fafc; }
 
     .candidate-portrait { width: 65px; height: 75px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); }
     .party-logo { width: 36px; height: 36px; object-fit: contain; }
-    .lobby-head-photo { width: 50px; height: 50px; border-radius: 4px; object-fit: cover; }
+    .lobby-head-photo { width: 45px; height: 45px; border-radius: 4px; object-fit: cover; }
 
     .profile-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
     .portrait-upload-box { text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 6px; border: 1px dashed var(--border-color); }
@@ -67,7 +70,7 @@
 
     .form-group { margin-bottom: 14px; }
     label { display: block; margin-bottom: 4px; font-weight: 600; color: var(--text-muted); font-size: 12px; }
-    input[type="text"], textarea, select { width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 13px; }
+    input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 13px; }
   </style>
 </head>
 <body>
@@ -75,17 +78,19 @@
 <!-- TOP NAVBAR -->
 <header class="top-nav">
   <div class="nav-links">
-    <span class="nav-item active" onclick="switchTab('tabElections')">Power</span>
-    <span class="nav-item" id="navPlayerName" onclick="switchTab('tabProfile')">Lyndon B. Johnson</span>
+    <span class="nav-item active" onclick="switchTab('tabFederal')">Power</span>
+    <span class="nav-item" id="navPlayerName" onclick="switchTab('tabProfile')">Wan Luqman</span>
     <span class="nav-item" onclick="switchTab('tabActions')">Actions</span>
-    <span class="nav-item" onclick="switchTab('tabElections')">USA ▼</span>
-    <span class="nav-item" onclick="switchTab('tabSenate')">Congress ▼</span>
-    <span class="nav-item" onclick="switchTab('tabElections')">Parties ▼</span>
+    <span class="nav-item" onclick="switchTab('tabStateDUN')">Negeri / DUN ▼</span>
+    <span class="nav-item" onclick="switchTab('tabFederal')">Persekutuan (222) ▼</span>
+    <span class="nav-item" onclick="switchTab('tabMBRoster')">Menteri Besar Roster</span>
+    <span class="nav-item" onclick="switchTab('tabParties')">Parties ▼</span>
     <span class="nav-item" onclick="switchTab('tabLobbies')">Interest Groups</span>
-    <span class="nav-item" onclick="switchTab('tabNews')">News ▼</span>
+    <span class="nav-item" onclick="switchTab('tabEconomy')">Economy</span>
     <span class="nav-item" onclick="switchTab('tabNews')">Emails <span class="badge">112</span></span>
   </div>
   <div class="nav-links">
+    <span class="nav-item" onclick="advanceTurn()">⏰ Advance Turn (Gain Power)</span>
     <span class="nav-item" onclick="switchTab('tabProfile')">Settings</span>
     <span class="nav-item" onclick="switchTab('tabProfile')">Logout</span>
   </div>
@@ -95,22 +100,25 @@
 
 <div class="container">
 
-  <!-- TAB 1: ELECTIONS & CANDIDATES -->
-  <div id="tabElections" class="tab-page">
+  <!-- TAB 1: PERINGKAT PERSEKUTUAN / FEDERAL LEVEL (DEWAN RAKYAT) -->
+  <div id="tabFederal" class="tab-page">
     <div class="world-map-banner">
-      <h2 style="font-size: 24px; color: #fff;">National Presidential & Parliamentary Election</h2>
-      <div class="election-timer">🗳 Election in 79 hours</div>
+      <h2 style="font-size: 24px; color: #fff;">🇲🇾 Peringkat Persekutuan: Dewan Rakyat (2020 Era)</h2>
+      <div class="election-timer">🗳 Federal Election (222 Seats | 112 to Appoint Prime Minister)</div>
     </div>
 
     <div class="card">
+      <div style="margin-bottom: 12px; font-size: 13px; color: var(--text-muted);">
+        Prime Minister Status: <b style="color:var(--success);" id="pmStatus">YAB Perdana Menteri: Wan Luqman (Coalition Majority: 118 Seats)</b>
+      </div>
       <table>
         <thead>
           <tr>
             <th>Politician</th>
-            <th>Party</th>
+            <th>Federal Coalition / Party</th>
             <th>Campaign Strength</th>
-            <th>Polling</th>
-            <th>Electoral College / Seats</th>
+            <th>Polling %</th>
+            <th>Dewan Rakyat Seats</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -120,15 +128,81 @@
     </div>
   </div>
 
-  <!-- TAB 2: INTEREST GROUPS & LOBBIES -->
-  <div id="tabLobbies" class="tab-page" style="display: none;">
+  <!-- TAB 2: PERINGKAT NEGERI / STATE LEVEL (DUN DEWAN UNDANGAN NEGERI) -->
+  <div id="tabStateDUN" class="tab-page" style="display: none;">
     <div class="card">
-      <div class="card-title">Interest Groups & Lobbies</div>
+      <div class="card-title">🇲🇾 Peringkat Negeri: Dewan Undangan Negeri (DUN) Election</div>
+      <div style="margin-bottom: 15px;">
+        <label>Pilih Negeri (Select State to Inspect DUNs):</label>
+        <select id="stateSelect" onchange="loadStateDUN(this.value)">
+          <option value="Selangor">Selangor (56 Seats | 29 for MB Majority)</option>
+          <option value="Johor">Johor (56 Seats | 29 for MB Majority)</option>
+          <option value="Penang">Penang (40 Seats | 21 for Chief Minister Majority)</option>
+          <option value="Perak">Perak (59 Seats | 30 for MB Majority)</option>
+          <option value="Kedah">Kedah (36 Seats | 19 for MB Majority)</option>
+          <option value="Kelantan">Kelantan (45 Seats | 23 for MB Majority)</option>
+          <option value="Sabah">Sabah (73 Seats | 37 for Chief Minister Majority)</option>
+          <option value="Sarawak">Sarawak (82 Seats | 42 for Premier Majority)</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="background: rgba(0,0,0,0.3);">
+          <h3 style="color:var(--accent);" id="stateTitle">Selangor State DUN Assembly</h3>
+          <div style="font-size:13px; margin: 10px 0;">
+            <div>• Total DUN Seats: <b id="stateTotalSeats">56 Seats</b></div>
+            <div>• Appointed Menteri Besar / KM: <b id="stateMB" style="color:var(--success);">Dato' Seri Amirudin (Selangor MB)</b></div>
+            <div>• Controlling Coalition: <b id="stateGov">Harapan-Alliance Coalition (34 Seats)</b></div>
+          </div>
+          <button class="btn btn-green" style="width:100%; margin-top:8px;" onclick="campaignStateDUN()">📢 Campaign for State DUN Seats (Cost: 10 Power, MYR 50,000)</button>
+        </div>
+
+        <div>
+          <h3>DUN Constituency Roster</h3>
+          <table>
+            <thead>
+              <tr><th>Constituency</th><th>Current Assemblyperson</th><th>Party</th></tr>
+            </thead>
+            <tbody id="dunRosterBody">
+              <tr><td>N.19 Seri Setia</td><td>Halimey Abu Bakar</td><td>Government</td></tr>
+              <tr><td>N.25 Subang Jaya</td><td>Michelle Ng</td><td>Government</td></tr>
+              <tr><td>N.51 Sijangkang</td><td>Ahmad Yunus</td><td>Opposition</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: MENTERI BESAR & CHIEF MINISTER ROSTER (ALL 13 STATES) -->
+  <div id="tabMBRoster" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">Appointed Menteri Besar & Chief Ministers Across All 13 States</div>
       <table>
         <thead>
           <tr>
-            <th>Group</th>
-            <th>Head</th>
+            <th>State</th>
+            <th>Appointed Menteri Besar / Chief Minister</th>
+            <th>Controlling Party / Coalition</th>
+            <th>DUN Seat Majority</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="mbRosterTableBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4: MALAYSIAN INTEREST GROUPS & LOBBIES -->
+  <div id="tabLobbies" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">Malaysian Industry Lobbies & Consortiums</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Group / Industry</th>
+            <th>Head / Representative</th>
             <th>State Strength</th>
             <th>National Strength</th>
             <th>Your Relationship</th>
@@ -141,20 +215,20 @@
     </div>
   </div>
 
-  <!-- TAB 3: SENATE / PARLIAMENT LEGISLATIVE CHAMBER -->
+  <!-- TAB 5: DEWAN RAKYAT LEGISLATIVE CHAMBER -->
   <div id="tabSenate" class="tab-page" style="display: none;">
     <div style="text-align: center; margin-bottom: 15px;">
-      <h2 style="font-size: 24px; margin-bottom: 10px;">The Senate Chamber</h2>
-      <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&auto=format&fit=crop" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
-      <button class="btn btn-blue" style="margin-top: 10px;">Current Law</button>
+      <h2 style="font-size: 24px; margin-bottom: 10px;">Dewan Rakyat Legislative Chamber</h2>
+      <img src="https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&auto=format&fit=crop" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
+      <button class="btn btn-blue" style="margin-top: 10px;">Current Law Inspector</button>
     </div>
 
     <div class="card">
       <table>
         <thead>
           <tr>
-            <th>Bill</th>
-            <th>Law Summary</th>
+            <th>Bill Code</th>
+            <th>Law / Policy Summary</th>
             <th>Ayes</th>
             <th>Nays</th>
             <th>Abstentions</th>
@@ -169,14 +243,47 @@
     </div>
   </div>
 
-  <!-- TAB 4: CHARACTER PROFILE & PORTRAIT UPLOAD -->
+  <!-- TAB 6: PARTIES & PARTY CHAIR SPECTRUM -->
+  <div id="tabParties" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">Malaysian Party Politics & Ideology Spectrum</div>
+      <div class="grid-2">
+        <div>
+          <h3>Internal Party Roster & Chairmanship</h3>
+          <table>
+            <thead>
+              <tr><th>Member</th><th>Party Power</th><th>Influence</th><th>Role</th></tr>
+            </thead>
+            <tbody id="partyRosterBody">
+            </tbody>
+          </table>
+          <button class="btn btn-blue" style="margin-top: 10px; width:100%;" onclick="campaignPartyChair()">Vote for Party Chairmanship (Cost: 10 Power)</button>
+        </div>
+
+        <div>
+          <h3>Economic & Social Spectrum Sliders</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Match your ideology with target DUN and parliamentary constituencies:</p>
+          <div class="form-group">
+            <label>Economic Position: <span id="lblEconPos">Centrist</span></label>
+            <input type="range" min="1" max="7" value="4" onchange="updateIdeology('econ', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Social Position: <span id="lblSocialPos">Center Right</span></label>
+            <input type="range" min="1" max="7" value="5" onchange="updateIdeology('social', this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: CHARACTER PROFILE & PORTRAIT UPLOAD -->
   <div id="tabProfile" class="tab-page" style="display: none;">
     <div class="card">
-      <div class="card-title" id="profileTitle">Lyndon B. Johnson</div>
+      <div class="card-title" id="profileTitle">Wan Luqman</div>
       <div class="profile-grid">
         <div class="portrait-upload-box">
-          <img id="portraitPreview" src="https://upload.wikimedia.org/wikipedia/commons/c/c3/37_Lyndon_B._Johnson_3x4.jpg" class="profile-photo-preview" alt="Candidate Portrait">
-          <label>Upload Custom Portrait Photo:</label>
+          <img id="portraitPreview" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop" class="profile-photo-preview" alt="Candidate Portrait">
+          <label>Upload Custom Candidate Photo:</label>
           <input type="file" id="portraitFileInput" accept="image/*" onchange="uploadLocalPortrait(event)" style="margin-top: 6px; font-size: 11px;">
           <div style="margin: 8px 0; font-size: 11px; color: var(--text-muted);">- OR Paste Photo URL -</div>
           <input type="text" id="portraitUrlInput" placeholder="https://..." onchange="updatePortraitUrl(this.value)" style="font-size: 11px;">
@@ -185,50 +292,104 @@
         <div>
           <div class="form-group">
             <label>Candidate Name:</label>
-            <input type="text" id="inputCharName" value="Lyndon B. Johnson" onchange="updateCharName(this.value)">
+            <input type="text" id="inputCharName" value="Wan Luqman" onchange="updateCharName(this.value)">
           </div>
           <div class="form-group">
-            <label>Biography & Political Quote:</label>
-            <textarea id="inputCharBio" rows="3">Better to let him know who's in charge than to let him think he's got the keys to the car.</textarea>
+            <label>Biography & Political Vision:</label>
+            <textarea id="inputCharBio" rows="3">Championing economic reform, public welfare, and national unity starting from Selangor, Malaysia.</textarea>
           </div>
           <div class="grid-2">
             <div class="form-group">
               <label>Location Base:</label>
-              <input type="text" id="inputLocation" value="TX / USA">
+              <input type="text" id="inputLocation" value="Selangor / Malaysia">
             </div>
             <div class="form-group">
               <label>Supporting Lobbies:</label>
-              <input type="text" readonly value="Oil & Gas, Labor Unions, Finance">
+              <input type="text" readonly value="PETRONAS, Palm Oil Guild, Youth Front">
             </div>
           </div>
-          <button class="btn btn-green" onclick="saveProfile()">Save Character Profile</button>
+          <button class="btn btn-green" onclick="saveProfile()">Save Candidate Profile</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB 5: ACTIONS & CAMPAIGN HEADQUARTERS -->
+  <!-- TAB 8: ACTIONS, CONVERSION & ATTACK ADS -->
   <div id="tabActions" class="tab-page" style="display: none;">
     <div class="card">
-      <div class="card-title">Campaign Actions & Political Power</div>
-      <div class="grid-3">
-        <button class="btn btn-blue" style="padding: 15px;" onclick="executeAction('Rally', 10, 20000)">📢 Hold National Rally (Cost: 10 Power, $20,000)</button>
-        <button class="btn btn-blue" style="padding: 15px;" onclick="executeAction('Lobby', 15, 50000)">💼 Fund Interest Group (Cost: 15 Power, $50,000)</button>
-        <button class="btn btn-green" style="padding: 15px;" onclick="executeAction('Fundraise', -5, -100000)">💵 Host Political Fundraiser (+100,000 Cash)</button>
+      <div class="card-title">Campaign Actions & Liquid Capital Conversion</div>
+      <div class="grid-2">
+        <div>
+          <h3>Convert Liquid Capital to Campaign Funds</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Convert personal cash into campaign finances to boost reputation:</p>
+          <div class="form-group">
+            <label>Conversion Amount (MYR):</label>
+            <input type="number" id="convertAmount" value="50000">
+          </div>
+          <button class="btn btn-green" style="width:100%;" onclick="convertCapital()">Convert Funds (+Reputation)</button>
+        </div>
+
+        <div>
+          <h3>Political Attack Ads & Campaigns</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Run targeted campaigns or attack ads against rival politicians:</p>
+          <div class="form-group">
+            <label>Target Rival Candidate:</label>
+            <select id="attackTarget">
+              <option value="0">Dato' Sri Ismail (National Front)</option>
+              <option value="1">Tan Sri Muhyiddin (Perikatan)</option>
+            </select>
+          </div>
+          <button class="btn btn-red" style="width:100%;" onclick="runAttackAd()">Launch Political Campaign / Attack Ad (10 Power / MYR 30,000)</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB 6: NEWS & EVENTS FEED -->
+  <!-- TAB 9: SHARED MARKET, CORPORATIONS & CRYPTO -->
+  <div id="tabEconomy" class="tab-page" style="display: none;">
+    <div class="card">
+      <div class="card-title">Corporate Market, Shares & Live Crypto Exchange</div>
+      <div class="grid-2">
+        <div>
+          <h3>Stock Market & Dividends</h3>
+          <table>
+            <thead>
+              <tr><th>Corporation</th><th>Price (MYR)</th><th>Quarterly Dividend</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>PETRONAS Gas Berhad</td><td>MYR 18.50</td><td>MYR 0.85 / share</td><td><button class="btn btn-blue" onclick="buyStock('PETRONAS', 18.5)">Buy Share</button></td></tr>
+              <tr><td>Sime Darby Plantation</td><td>MYR 4.30</td><td>MYR 0.25 / share</td><td><button class="btn btn-blue" onclick="buyStock('SimeDarby', 4.3)">Buy Share</button></td></tr>
+            </tbody>
+          </table>
+          <h3 style="margin-top: 16px;">Form Public Company</h3>
+          <input type="text" id="corpName" placeholder="New Company Name" style="margin-bottom: 8px;">
+          <button class="btn btn-green" onclick="createCorp()">Register Public Corporation (MYR 100,000)</button>
+        </div>
+
+        <div>
+          <h3>Live Crypto Asset Exchange</h3>
+          <table>
+            <thead><tr><th>Asset</th><th>Market Price (MYR)</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Bitcoin (BTC)</td><td>MYR 38,500 (2020)</td><td><button class="btn btn-purple" onclick="buyCrypto('BTC', 38500)">Buy BTC</button></td></tr>
+              <tr><td>Ethereum (ETH)</td><td>MYR 750 (2020)</td><td><button class="btn btn-purple" onclick="buyCrypto('ETH', 750)">Buy ETH</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 10: NEWS & EVENTS FEED -->
   <div id="tabNews" class="tab-page" style="display: none;">
     <div class="card">
-      <div class="card-title">National News & Event Wire</div>
+      <div class="card-title">National News Wire & Event Logs</div>
       <div id="newsFeedList">
         <div class="card" style="background: rgba(0,0,0,0.3);">
-          <p style="font-size: 15px; font-weight: 500;">A bill with special infrastructure funding for the state of WY has passed in Congress, increasing economic growth and decreasing unemployment in the state.</p>
+          <p style="font-size: 15px; font-weight: 500;">🇲🇾 2020 Political Developments: Dewan Rakyat & DUN state assembly sessions active across all 13 states.</p>
         </div>
         <div class="card" style="background: rgba(0,0,0,0.3);">
-          <p style="font-size: 15px; font-weight: 500;">Higher quality education in WY has resulted in businesses moving into the state, increasing growth by 0.13%.</p>
+          <p style="font-size: 15px; font-weight: 500;">Economic stimulus package tabled to support infrastructure and digital expansion in Selangor and Penang.</p>
         </div>
       </div>
     </div>
@@ -239,33 +400,53 @@
 <!-- FIXED BOTTOM STATUS BAR -->
 <footer class="status-bar">
   <div>POWER: <span class="stat-power" id="barPower">43.2</span></div>
-  <div>FUNDS: <span class="stat-funds" id="barFunds">$500,000</span></div>
+  <div>FUNDS: <span class="stat-funds" id="barFunds">MYR 500,000</span></div>
 </footer>
 
 <script>
+  const SUPABASE_KEY = "sb_publishable_6Hm_Po8BOuuV36YlCqOz3g_rTHDqzyV";
+
   let state = {
     player: {
-      name: "Lyndon B. Johnson",
+      name: "Wan Luqman",
       power: 43.2,
       funds: 500000,
-      portrait: "https://upload.wikimedia.org/wikipedia/commons/c/c3/37_Lyndon_B._Johnson_3x4.jpg",
-      location: "TX / USA"
+      portrait: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop",
+      location: "Selangor / Malaysia",
+      partyPower: 220,
+      reputation: 68.5,
+      btc: 0
     },
     candidates: [
-      { name: "John Heydrich", party: "Republican Party", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Republicanlogo.svg", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Reinhard_Heydrich_portrait.jpg/220px-Reinhard_Heydrich_portrait.jpg", strength: 5253.3, polling: 54.5, votes: 74430210, electoral: 342 },
-      { name: "Franklin Delano Roosevelt", party: "Democratic Party", logo: "https://upload.wikimedia.org/wikipedia/commons/0/02/DemocraticLogo.svg", photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/FDR_1944_Color_Portrait.jpg/220px-FDR_1944_Color_Portrait.jpg", strength: 5271.9, polling: 45.0, votes: 61478521, electoral: 190 },
-      { name: "Lyndon B. Johnson (You)", party: "Independent / Reform", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", photo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/37_Lyndon_B._Johnson_3x4.jpg", strength: 221.1, polling: 0.5, votes: 643559, electoral: 0 }
+      { name: "Dato' Sri Ismail", party: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", strength: 5253.3, polling: 48.5, votes: 5430210, electoral: 108 },
+      { name: "Tan Sri Muhyiddin", party: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop", strength: 5120.5, polling: 42.0, votes: 4878521, electoral: 95 },
+      { name: "Wan Luqman (You)", party: "People's Progressive Alliance", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop", strength: 350.0, polling: 9.5, votes: 1243559, electoral: 19 }
     ],
+    states: {
+      "Selangor": { seats: 56, mb: "Dato' Seri Amirudin (Selangor MB)", gov: "Harapan-Alliance Coalition (34 Seats)" },
+      "Johor": { seats: 56, mb: "Dato' Onn Hafiz (Johor MB)", gov: "National Front Coalition (40 Seats)" },
+      "Penang": { seats: 40, mb: "Chow Kon Yeow (Penang CM)", gov: "Harapan-Alliance Coalition (29 Seats)" },
+      "Perak": { seats: 59, mb: "Dato' Seri Saarani (Perak MB)", gov: "Unity Alliance Coalition (33 Seats)" },
+      "Kedah": { seats: 36, mb: "Datuk Seri Sanusi (Kedah MB)", gov: "Perikatan Coalition (33 Seats)" },
+      "Kelantan": { seats: 45, mb: "Dato' Mohd Nassuruddin (Kelantan MB)", gov: "Perikatan Coalition (42 Seats)" },
+      "Sabah": { seats: 73, mb: "Datuk Seri Hajiji (Sabah CM)", gov: "GRS Alliance Coalition (44 Seats)" },
+      "Sarawak": { seats: 82, mb: "Tan Sri Abang Johari (Sarawak Premier)", gov: "GPS Coalition (76 Seats)" }
+    },
     lobbies: [
-      { group: "Finance", head: "Adrian Tam", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 107, natStr: 80, rel: 50 },
-      { group: "Healthcare, Insurance & Pharma", head: "Jim Rohan", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", stateStr: 75, natStr: 73.5, rel: 50 },
-      { group: "Military-Industrial Complex", head: "Akeno Misaki", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 75, natStr: 73.7, rel: 50 }
+      { group: "PETRONAS Energy & Petroleum", head: "Dato' Azman", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop", stateStr: 120, natStr: 95, rel: 65 },
+      { group: "Palm Oil & Plantation Guild (MPOB)", head: "Tan Sri Lim", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop", stateStr: 90, natStr: 85, rel: 55 },
+      { group: "Banking & Islamic Finance Consortium", head: "Tengku Zafrul", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop", stateStr: 110, natStr: 90, rel: 60 }
     ],
     bills: [
-      { code: "S.7435: Annoy Estelle Act", law: "abortion, legal during first trimester", ayes: 1, nays: 0, abstentions: 99, author: "Oreki Houtarou", timer: "23 hours" },
-      { code: "S.3292: Marijuana Safety Act", law: "marijuana, legal and regulated", ayes: 15, nays: 19, abstentions: 66, author: "Texas Ranger", timer: "12 hours" },
-      { code: "S.9087: Medicare For All Act", law: "healthcare, single payer", ayes: 14, nays: 35, abstentions: 51, author: "Dylan Vega", timer: "6 hours" }
-    ]
+      { code: "S.7435: Economic Stimulus Package 2020", law: "Infrastructure & Business Relief Fund", ayes: 118, nays: 90, abstentions: 14, author: "Wan Luqman", timer: "23 hours" },
+      { code: "S.3292: Digital Economy & Tax Reform Act", law: "Regulated Tech & E-Commerce Framework", ayes: 112, nays: 98, abstentions: 12, author: "Dewan Committee", timer: "12 hours" }
+    ],
+    roster: [
+      { name: "Wan Luqman (You)", power: 220, inf: 85, role: "Party Chair" },
+      { name: "Syed Saddiq", power: 180, inf: 70, role: "Youth Wing Leader" },
+      { name: "Rafizi Ramli", power: 150, inf: 65, role: "Economic Director" }
+    ],
+    spectrum: ["Extremely Left Wing", "Very Left Wing", "Left Wing", "Center Left", "Centrist", "Center Right", "Right Wing", "Extremely Right Wing"]
   };
 
   function showToast(msg) {
@@ -275,15 +456,24 @@
     setTimeout(() => { banner.style.display = "none"; }, 3000);
   }
 
+  function advanceTurn() {
+    state.player.power += 1.5;
+    state.player.funds += 15000;
+    showToast("Turn advanced! +1.5 Power & +MYR 15,000 Capital gained.");
+    updateUI();
+  }
+
   function updateUI() {
     document.getElementById("navPlayerName").innerText = state.player.name;
     document.getElementById("profileTitle").innerText = state.player.name;
     document.getElementById("barPower").innerText = state.player.power.toFixed(1);
-    document.getElementById("barFunds").innerText = `$${state.player.funds.toLocaleString()}`;
+    document.getElementById("barFunds").innerText = `MYR ${state.player.funds.toLocaleString()}`;
 
     renderCandidates();
     renderLobbies();
     renderBills();
+    renderRoster();
+    renderMBRoster();
   }
 
   function renderCandidates() {
@@ -309,13 +499,48 @@
           <div style="font-weight:bold;">${c.polling.toFixed(1)}%</div>
           <div style="font-size:11px; color:var(--text-muted);">${c.votes.toLocaleString()}</div>
         </td>
-        <td style="font-weight:bold;">${c.electoral} Votes</td>
+        <td style="font-weight:bold;">${c.electoral} Seats</td>
         <td>
-          <button class="btn btn-blue" onclick="campaignForCandidate(${idx})">Campaign For (10 power, $100,000)</button>
+          <button class="btn btn-blue" onclick="campaignForCandidate(${idx})">Campaign For (10 power, MYR 100k)</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  function loadStateDUN(stateName) {
+    const s = state.states[stateName];
+    if (s) {
+      document.getElementById("stateTitle").innerText = `${stateName} State DUN Assembly`;
+      document.getElementById("stateTotalSeats").innerText = `${s.seats} Seats`;
+      document.getElementById("stateMB").innerText = s.mb;
+      document.getElementById("stateGov").innerText = s.gov;
+    }
+  }
+
+  function campaignStateDUN() {
+    if (state.player.power >= 10 && state.player.funds >= 50000) {
+      state.player.power -= 10;
+      state.player.funds -= 50000;
+      showToast("State DUN campaign executed! DUN seat projection boosted.");
+      updateUI();
+    } else showToast("Need at least 10 Power and MYR 50,000 Funds!");
+  }
+
+  function renderMBRoster() {
+    const tbody = document.getElementById("mbRosterTableBody");
+    tbody.innerHTML = "";
+    for (const [st, info] of Object.entries(state.states)) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="font-weight:bold; color:#38bdf8">${st}</td>
+        <td><b>${info.mb}</b></td>
+        <td>${info.gov}</td>
+        <td>${info.seats} Seats</td>
+        <td><button class="btn btn-blue" onclick="switchTab('tabStateDUN')">Inspect DUN</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
   }
 
   function campaignForCandidate(idx) {
@@ -324,12 +549,12 @@
       state.player.funds -= 100000;
       state.candidates[idx].strength += 150.0;
       state.candidates[idx].polling = Math.min(100, state.candidates[idx].polling + 1.8);
-      state.candidates[idx].electoral += 12;
+      state.candidates[idx].electoral += 3;
       
-      showToast(`Campaign launched for ${state.candidates[idx].name}! Strength & polling increased.`);
+      showToast(`Campaign launched for ${state.candidates[idx].name}! Dewan Rakyat seat projection increased.`);
       updateUI();
     } else {
-      showToast("Need at least 10 Power and $100,000 Funds!");
+      showToast("Need at least 10 Power and MYR 100,000 Funds!");
     }
   }
 
@@ -391,8 +616,81 @@
   function voteBill(idx, vote) {
     if (vote === 'aye') state.bills[idx].ayes++;
     if (vote === 'nay') state.bills[idx].nays++;
-    showToast(`Voted ${vote.toUpperCase()} on ${state.bills[idx].code}.`);
+    showToast(`Voted ${vote.toUpperCase()} on ${state.bills[idx].code} in Dewan Rakyat.`);
     updateUI();
+  }
+
+  function renderRoster() {
+    const tbody = document.getElementById("partyRosterBody");
+    tbody.innerHTML = "";
+    state.roster.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${r.name}</td><td>${r.power}</td><td>${r.inf}</td><td><b style="color:#38bdf8">${r.role}</b></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function convertCapital() {
+    const amt = parseInt(document.getElementById("convertAmount").value);
+    if (amt && state.player.funds >= amt) {
+      state.player.funds -= amt;
+      state.player.power += Math.floor(amt / 10000);
+      showToast(`Converted MYR ${amt.toLocaleString()} to Campaign Finances! Reputation gained.`);
+      updateUI();
+    } else showToast("Insufficient Funds!");
+  }
+
+  function runAttackAd() {
+    const targetIdx = document.getElementById("attackTarget").value;
+    if (state.player.power >= 10 && state.player.funds >= 30000) {
+      state.player.power -= 10;
+      state.player.funds -= 30000;
+      state.candidates[targetIdx].polling = Math.max(0, state.candidates[targetIdx].polling - 2.5);
+      showToast(`Campaign ad launched against ${state.candidates[targetIdx].name}! Their polling dropped.`);
+      updateUI();
+    } else showToast("Need at least 10 Power and MYR 30,000 Cash!");
+  }
+
+  function updateIdeology(type, val) {
+    if (type === 'econ') document.getElementById("lblEconPos").innerText = state.spectrum[val - 1];
+    if (type === 'social') document.getElementById("lblSocialPos").innerText = state.spectrum[val - 1];
+    showToast(`Political Spectrum updated to ${state.spectrum[val - 1]}!`);
+  }
+
+  function campaignPartyChair() {
+    if (state.player.power >= 10) {
+      state.player.power -= 10;
+      state.player.partyPower += 25;
+      state.roster[0].power = state.player.partyPower;
+      showToast("Campaign for Party Chairmanship launched! Party power increased.");
+      updateUI();
+    }
+  }
+
+  function buyStock(name, price) {
+    if (state.player.funds >= price) {
+      state.player.funds -= price;
+      showToast(`Purchased share of ${name}!`);
+      updateUI();
+    }
+  }
+
+  function buyCrypto(type, price) {
+    if (state.player.funds >= price) {
+      state.player.funds -= price;
+      state.player.btc++;
+      showToast(`Purchased 1 ${type}!`);
+      updateUI();
+    }
+  }
+
+  function createCorp() {
+    const name = document.getElementById("corpName").value;
+    if (name && state.player.funds >= 100000) {
+      state.player.funds -= 100000;
+      showToast(`Public Corporation '${name}' registered in Malaysia!`);
+      updateUI();
+    }
   }
 
   function uploadLocalPortrait(e) {
@@ -403,7 +701,7 @@
         state.player.portrait = evt.target.result;
         document.getElementById("portraitPreview").src = state.player.portrait;
         state.candidates.photo = state.player.portrait;
-        showToast("Custom portrait uploaded successfully!");
+        showToast("Custom candidate portrait uploaded successfully!");
         updateUI();
       };
       reader.readAsDataURL(file);
@@ -429,18 +727,7 @@
   }
 
   function saveProfile() {
-    showToast("Profile settings saved successfully!");
-  }
-
-  function executeAction(type, powerCost, fundsCost) {
-    if (state.player.power >= powerCost && state.player.funds >= fundsCost) {
-      state.player.power -= powerCost;
-      state.player.funds -= fundsCost;
-      showToast(`${type} executed successfully!`);
-      updateUI();
-    } else {
-      showToast("Insufficient Power or Funds!");
-    }
+    showToast("Candidate Profile settings saved successfully!");
   }
 
   function switchTab(tabId) {
