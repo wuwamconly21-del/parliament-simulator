@@ -1,7 +1,19 @@
 /* ==========================================================================
-   POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
+   POWER - Malaysia Geopolitics, Stock Exchange & MYTok Simulator
    Game Engine & Application Logic ("A House Divided" Sleek Edition)
    ========================================================================== */
+
+/* 34+ Million Real Malaysian Population & Registered Voter Breakdown */
+const MALAYSIA_POPULATION_STATS = {
+  totalPopulation: 34100000,
+  totalRegisteredVoters: 21180000,
+  voterDemographics: {
+    undi18: { label: "Pengundi Belia (Undi18 / Gen-Z)", share: 32, favor: "Reformist / Youth" },
+    rural: { label: "Pengundi Luar Bandar & Felda", share: 28, favor: "Conservatism / Islamism" },
+    urban: { label: "Pengundi Bandar & Suburb", share: 25, favor: "Social Democracy / Liberalism" },
+    business: { label: "Komuniti Perniagaan & Industri", share: 15, favor: "Free Market / Stability" }
+  }
+};
 
 /* Real Malaysian Corporations listed on Bursa Malaysia (KLSE) */
 const BURSA_MALAYSIA_CORPORATIONS = [
@@ -90,21 +102,31 @@ const MALAYSIAN_COMMODITIES = [
 
 /* Real Malaysian Political Parties & Coalitions */
 const REAL_MALAYSIAN_PARTIES = [
-  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "Anwar Ibrahim", ideology: "Social Democracy / Reformist" },
-  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "Muhyiddin Yassin", ideology: "Conservatism / Malay-Muslim Unity" },
-  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "Ahmad Zahid Hamidi", ideology: "Traditional Conservatism / Nationalism" },
-  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "Abang Johari Openg", ideology: "Regional Autonomy / Sarawak First" },
-  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "Hajiji Noor", ideology: "Sabah Regional Autonomy" },
-  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "Shafie Apdal", ideology: "Multiracialism / Sabah Unity" },
-  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "Syed Saddiq", ideology: "Youth Politics / Progressive" }
+  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "Anwar Ibrahim", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
+  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "Muhyiddin Yassin", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
+  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "Ahmad Zahid Hamidi", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
+  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "Abang Johari Openg", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
+  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "Hajiji Noor", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
+  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "Shafie Apdal", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
+  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "Syed Saddiq", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
 ];
 
-/* 14 Malaysian States/Territories & Real DUN Seat Counts */
+/* 14 Malaysian States/Territories */
 const STATE_SEATS = {
-  "Johor": 56, "Kedah": 36, "Kelantan": 45, "Melaka": 28,
-  "Negeri Sembilan": 36, "Pahang": 42, "Perak": 59, "Perlis": 15,
-  "Pulau Pinang": 40, "Sabah": 73, "Sarawak": 82, "Selangor": 56,
-  "Terengganu": 32, "Wilayah Persekutuan": 0
+  "Selangor": { seats: 56, pop: "7.2M", voters: "3.8M", mb: "Amirudin Shari (Selangor MB)", gov: "Pakatan Harapan (34 Kerusi)" },
+  "Johor": { seats: 56, pop: "4.1M", voters: "2.6M", mb: "Onn Hafiz Ghazi (Johor MB)", gov: "Barisan Nasional (40 Kerusi)" },
+  "Sabah": { seats: 73, pop: "3.4M", voters: "1.7M", mb: "Hajiji Noor (Sabah CM)", gov: "GRS Alliance (44 Kerusi)" },
+  "Sarawak": { seats: 82, pop: "2.9M", voters: "1.9M", mb: "Abang Johari Openg (Sarawak Premier)", gov: "GPS Alliance (76 Kerusi)" },
+  "Perak": { seats: 59, pop: "2.5M", voters: "1.6M", mb: "Saarani Mohamad (Perak MB)", gov: "Unity Alliance (33 Kerusi)" },
+  "Kedah": { seats: 36, pop: "2.2M", voters: "1.3M", mb: "Muhammad Sanusi Md Nor (Kedah MB)", gov: "Perikatan Nasional (33 Kerusi)" },
+  "Wilayah Persekutuan": { seats: 0, pop: "2.0M", voters: "1.1M", mb: "Ditadbir Persekutuan (Menteri WP)", gov: "Kerajaan Persekutuan" },
+  "Kelantan": { seats: 45, pop: "1.8M", voters: "1.2M", mb: "Mohd Nassuruddin Daud (Kelantan MB)", gov: "Perikatan Nasional (42 Kerusi)" },
+  "Pulau Pinang": { seats: 40, pop: "1.8M", voters: "1.2M", mb: "Chow Kon Yeow (Penang CM)", gov: "Pakatan Harapan (29 Kerusi)" },
+  "Pahang": { seats: 42, pop: "1.6M", voters: "1.0M", mb: "Wan Rosdy Wan Ismail (Pahang MB)", gov: "Barisan Nasional (24 Kerusi)" },
+  "Terengganu": { seats: 32, pop: "1.3M", voters: "0.9M", mb: "Ahmad Samsuri Mokhtar (Terengganu MB)", gov: "Perikatan Nasional (32 Kerusi)" },
+  "Negeri Sembilan": { seats: 36, pop: "1.2M", voters: "0.8M", mb: "Aminuddin Harun (N.Sembilan MB)", gov: "Pakatan Harapan (31 Kerusi)" },
+  "Melaka": { seats: 28, pop: "1.0M", voters: "0.7M", mb: "Ab Rauf Yusoh (Melaka CM)", gov: "Barisan Nasional (21 Kerusi)" },
+  "Perlis": { seats: 15, pop: "0.3M", voters: "0.2M", mb: "Mohd Shukri Ramli (Perlis MB)", gov: "Perikatan Nasional (14 Kerusi)" }
 };
 
 function majorityOf(seats) {
@@ -112,25 +134,15 @@ function majorityOf(seats) {
 }
 
 function defaultStates() {
-  const base = {
-    "Johor": { mb: "Onn Hafiz Ghazi (Johor MB)", gov: "Barisan Nasional (40 Kerusi)" },
-    "Kedah": { mb: "Muhammad Sanusi Md Nor (Kedah MB)", gov: "Perikatan Nasional (33 Kerusi)" },
-    "Kelantan": { mb: "Mohd Nassuruddin Daud (Kelantan MB)", gov: "Perikatan Nasional (42 Kerusi)" },
-    "Melaka": { mb: "Ab Rauf Yusoh (Melaka CM)", gov: "Barisan Nasional (21 Kerusi)" },
-    "Negeri Sembilan": { mb: "Aminuddin Harun (N.Sembilan MB)", gov: "Pakatan Harapan (31 Kerusi)" },
-    "Pahang": { mb: "Wan Rosdy Wan Ismail (Pahang MB)", gov: "Barisan Nasional (24 Kerusi)" },
-    "Perak": { mb: "Saarani Mohamad (Perak MB)", gov: "Unity Alliance (33 Kerusi)" },
-    "Perlis": { mb: "Mohd Shukri Ramli (Perlis MB)", gov: "Perikatan Nasional (14 Kerusi)" },
-    "Pulau Pinang": { mb: "Chow Kon Yeow (Penang CM)", gov: "Pakatan Harapan (29 Kerusi)" },
-    "Sabah": { mb: "Hajiji Noor (Sabah CM)", gov: "GRS Alliance (44 Kerusi)" },
-    "Sarawak": { mb: "Abang Johari Openg (Sarawak Premier)", gov: "GPS Alliance (76 Kerusi)" },
-    "Selangor": { mb: "Amirudin Shari (Selangor MB)", gov: "Pakatan Harapan (34 Kerusi)" },
-    "Terengganu": { mb: "Ahmad Samsuri Mokhtar (Terengganu MB)", gov: "Perikatan Nasional (32 Kerusi)" },
-    "Wilayah Persekutuan": { mb: "Ditadbir Kerajaan Persekutuan (Menteri WP)", gov: "Kerajaan Persekutuan" }
-  };
   const out = {};
   for (const name in STATE_SEATS) {
-    out[name] = { seats: STATE_SEATS[name], mb: base[name].mb, gov: base[name].gov };
+    out[name] = { 
+      seats: STATE_SEATS[name].seats, 
+      pop: STATE_SEATS[name].pop,
+      voters: STATE_SEATS[name].voters,
+      mb: STATE_SEATS[name].mb, 
+      gov: STATE_SEATS[name].gov 
+    };
   }
   return out;
 }
@@ -148,9 +160,15 @@ function defaultGameState() {
       btc: 0,
       bio: "Memacu reformasi ekonomi, kebajikan rakyat dan perpaduan nasional.",
       partyName: "Pakatan Harapan (PH)",
-      ideology: "Social Democracy / Reformist",
+      ideology: "Islamism / Islamic Democracy",
       role: "Perdana Menteri / Presiden Parti"
     },
+    myTokPosts: [
+      { id: 1, title: "Ucapan Rasmi Perdana Menteri Mengenai Bajet 2026 #MalaysiaMadani", author: "Wan Luqman", views: "1.2M", likes: "340K", shares: "45K", tags: "#PolitikMY #DewanRakyat" }
+    ],
+    sdnBhdList: [
+      { id: 1, name: "Sentral Gaming Malaysia Sdn Bhd", sector: "Gaming & Technology", val: "MYR 250,000", dailyDiv: "MYR 12,500/d" }
+    ],
     cabinet: {
       finance: "Rafizi Ramli (Menteri Kewangan)",
       defense: "Mohamad Hasan (Menteri Pertahanan)",
@@ -162,7 +180,7 @@ function defaultGameState() {
     sprmAudit: { status: "Bersih", risk: "Rendah", activeInvestigations: 0 },
     pdrmStatus: { orderLevel: "Aman", riotRisk: "Rendah", officersDeployed: 12000 },
     articles: [
-      { title: "Rancangan Pembangunan Ekonomi Digital Selangor 2026", author: "Wan Luqman", date: "2 jam lepas", views: 4250, likes: 890 }
+      { title: "Pelan Pembangunan Ekonomi Digital Selangor 2026", author: "Wan Luqman", date: "2 jam lepas", views: 4250, likes: 890 }
     ],
     chatMessages: [
       { sender: "Sistem", text: "Selamat datang ke Server Geopolitik & Bursa Malaysia!" }
@@ -270,6 +288,8 @@ async function routeAfterAuth() {
         if (gs.cabinet) state.cabinet = gs.cabinet;
         if (gs.articles) state.articles = gs.articles;
         if (gs.corporations) state.corporations = gs.corporations;
+        if (gs.sdnBhdList) state.sdnBhdList = gs.sdnBhdList;
+        if (gs.myTokPosts) state.myTokPosts = gs.myTokPosts;
         lastMidnightReset = gs.last_midnight_reset;
       }
     }
@@ -285,6 +305,7 @@ async function routeAfterAuth() {
   applyCatchUpMidnightResets();
   startMYTMidnightClock();
   start1WeekElectionCountdown();
+  startLivingStockEngine();
   updateUI();
   showToast(`Selamat kembali, ${state.player.name}! 400 PP & MYR 1 Million sedia.`);
 }
@@ -415,7 +436,8 @@ async function initGame(e) {
       seats: 15,
       polling: 8.5,
       leader: `${name} (Anda)`,
-      ideology: ideology
+      ideology: ideology,
+      discord: "https://discord.gg/parti-saya"
     });
   } else {
     const targetParty = state.parties.find(p => p.id === selectedPartyChoice);
@@ -452,8 +474,20 @@ async function initGame(e) {
 
   startMYTMidnightClock();
   start1WeekElectionCountdown();
+  startLivingStockEngine();
   updateUI();
   showToast(`Selamat datang ${state.player.name}! Bermula dengan 400 PP & MYR 1,000,000 modal kempen.`);
+}
+
+/* Living Stock Market Price Fluctuation Loop */
+function startLivingStockEngine() {
+  setInterval(() => {
+    state.corporations.forEach(c => {
+      const delta = (Math.random() * 0.4 - 0.18);
+      c.price = Math.max(0.20, Number((c.price + delta).toFixed(2)));
+    });
+    renderStockMarketList();
+  }, 4000);
 }
 
 function buildGameStateRow() {
@@ -474,6 +508,8 @@ function buildGameStateRow() {
     cabinet: state.cabinet,
     articles: state.articles,
     corporations: state.corporations,
+    sdnBhdList: state.sdnBhdList,
+    myTokPosts: state.myTokPosts,
     last_midnight_reset: lastMidnightReset || new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -589,6 +625,66 @@ function resetElectionCycle() {
   showToast("🗳 1 WEEKS IRL ELECTION RESET: Parlimen dibubarkan & kerusi dikemaskini secara automatik!");
   updateUI();
   queueSave();
+}
+
+function postMYTokVideo() {
+  const title = document.getElementById("myTokTitleInput").value;
+  const tags = document.getElementById("myTokTagInput").value || "#MYTok #PolitikMY";
+
+  if (title) {
+    const randomViews = (Math.floor(Math.random() * 800) + 100) + "K";
+    const randomLikes = (Math.floor(Math.random() * 200) + 20) + "K";
+    state.myTokPosts.unshift({
+      id: Date.now(),
+      title: title,
+      author: state.player.name,
+      views: randomViews,
+      likes: randomLikes,
+      shares: "12K",
+      tags: tags
+    });
+    state.player.pp += 20;
+    state.player.funds += 15000;
+    document.getElementById("myTokTitleInput").value = "";
+    showToast("📱 Video MYTok tular! +20 PP & +MYR 15,000 sumbangan kempen!");
+    updateUI();
+    queueSave();
+  } else showToast("Sila masukkan tajuk video MYTok!", true);
+}
+
+function changePlayerParty(partyId) {
+  const target = state.parties.find(p => p.id === partyId);
+  if (target) {
+    state.player.partyName = target.name;
+    target.leader = `${state.player.name} (Anda)`;
+    showToast(`Beralih parti politik kepada ${target.name}!`);
+    updateUI();
+    queueSave();
+  }
+}
+
+function updatePlayerIdeologyInParties(newIdeology) {
+  state.player.ideology = newIdeology;
+  showToast(`Ideologi calon dikemaskini kepada: ${newIdeology}`);
+  updateUI();
+  queueSave();
+}
+
+function createSdnBhdCompany() {
+  const name = prompt("Masukkan nama Syarikat Sendirian Berhad (Sdn Bhd) baharu anda:", "Sentral Media Technology Sdn Bhd");
+  if (name && state.player.funds >= 25000) {
+    state.player.funds -= 25000;
+    state.sdnBhdList.unshift({
+      id: Date.now(),
+      name: name,
+      sector: "Perkhidmatan / Teknologi",
+      val: "MYR 250,000",
+      dailyDiv: "MYR 10,000/d"
+    });
+    showToast(`🏢 Syarikat '${name}' berjaya ditubuhkan! Dividen harian didaftarkan.`);
+    updateUI();
+    queueSave();
+  } else showToast("Diperlukan MYR 25,000 modal penubuhan Sdn Bhd!", true);
 }
 
 function updateCabinetMinister(role, name) {
@@ -769,7 +865,9 @@ function updateUI() {
   renderCabinet();
   renderArticles();
   renderChat();
+  renderMYTokPosts();
   renderStockMarketList();
+  renderSdnBhdList();
   loadStateDUN(state.selectedState);
   
   if (document.getElementById("econSlider")) {
@@ -785,6 +883,43 @@ function updateUI() {
   if (document.getElementById("portBtc")) {
     document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
   }
+}
+
+function renderMYTokPosts() {
+  const container = document.getElementById("myTokContainer");
+  if (!container || !state.myTokPosts) return;
+  container.innerHTML = "";
+  state.myTokPosts.forEach(post => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.background = "rgba(10, 15, 29, 0.6)";
+    card.style.borderLeft = "4px solid var(--accent-red)";
+    card.innerHTML = `
+      <div style="font-size:11px; color:var(--accent-red); font-weight:bold;">📱 MYTok Viral Video</div>
+      <h4 style="color:#fff; font-size:15px; margin-top:2px;">${post.title}</h4>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Oleh <b>${post.author}</b> • 👁 ${post.views} Tontonan • ❤️ ${post.likes} • 🔄 ${post.shares} Perkongsian</div>
+      <div style="font-size:11px; color:var(--accent-blue); margin-top:4px;">${post.tags}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderSdnBhdList() {
+  const container = document.getElementById("sdnBhdContainer");
+  if (!container || !state.sdnBhdList) return;
+  container.innerHTML = "";
+  state.sdnBhdList.forEach(s => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.background = "rgba(10,15,29,0.5)";
+    card.innerHTML = `
+      <h4 style="color:var(--accent-red); font-size:15px;">${s.name}</h4>
+      <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+        Sektor: <b>${s.sector}</b> • Nilai: <b style="color:var(--success);">${s.val}</b> • Dividen: <b>${s.dailyDiv}</b>
+      </div>
+    `;
+    container.appendChild(card);
+  });
 }
 
 function renderCabinet() {
@@ -837,7 +972,7 @@ function populateStateSelect() {
     const opt = document.createElement("option");
     opt.value = name;
     opt.innerText = info.seats > 0
-      ? `${name} (${info.seats} Kerusi | ${majorityOf(info.seats)} Majoriti)`
+      ? `${name} (${info.seats} Kerusi | Pop: ${info.pop} | Voters: ${info.voters})`
       : `${name} (Ditadbir Persekutuan)`;
     sel.appendChild(opt);
   }
@@ -867,6 +1002,7 @@ function renderPartiesAndCandidates() {
       </td>
       <td>
         <span style="font-weight:600; color:${p.color || '#38bdf8'}">${p.name}</span>
+        <div style="font-size:10px; color:var(--text-muted);">${p.discord || 'Tiada Link Discord'}</div>
       </td>
       <td style="font-weight:bold;">${(p.seats * 15.2).toFixed(1)}</td>
       <td>
@@ -929,6 +1065,9 @@ function loadStateDUN(stateName) {
   
   const govEl = document.getElementById("stateGov");
   if (govEl) govEl.innerText = s.gov;
+
+  const popEl = document.getElementById("statePopInfo");
+  if (popEl) popEl.innerText = `Populasi: ${s.pop || '2.0M'} | Pengundi Berdaftar: ${s.voters || '1.2M'}`;
 
   const dunBody = document.getElementById("dunSeatTableBody");
   if (!dunBody) return;
@@ -1203,4 +1342,6 @@ function switchTab(tabId) {
     if (document.getElementById("portFunds")) document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
     if (document.getElementById("portBtc")) document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
   }
+}
+EOF
 }
