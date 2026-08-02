@@ -101,7 +101,7 @@
 
   <!-- SCREEN 2: CHARACTER SETUP -->
   <div id="setupScreen" class="card" style="display: none; max-width: 800px; margin: 30px auto;">
-    <h2 style="color: var(--accent); margin-bottom: 16px; text-align: center;">Cipta Profil Calon & Parti Politik Baru</h2>
+    <h2 style="color: var(--accent); margin-bottom: 16px; text-align: center;">Cipta Profil Calon & Ambil Alih Parti Politik Malaysia</h2>
     <form onsubmit="initGame(event)">
       <div class="grid-2">
         <div class="form-group">
@@ -131,8 +131,21 @@
 
       <div class="grid-2" style="margin-top: 10px;">
         <div class="form-group">
-          <label>Nama Parti / Gabungan Politik Baru</label>
-          <input type="text" id="partyName" value="Gabungan Reformasi Rakyat">
+          <label>Pilih Parti / Gabungan Politik Malaysia Sebenar</label>
+          <select id="partySelect" onchange="document.getElementById('partyNameCustomGroup').style.display = (this.value==='custom') ? 'block' : 'none';">
+            <option value="ph">Pakatan Harapan (PH)</option>
+            <option value="pn">Perikatan Nasional (PN)</option>
+            <option value="bn">Barisan Nasional (BN)</option>
+            <option value="gps">Gabungan Parti Sarawak (GPS)</option>
+            <option value="grs">Gabungan Rakyat Sabah (GRS)</option>
+            <option value="warisan">Parti Warisan (WARISAN)</option>
+            <option value="muda">Ikatan Demokratik Malaysia (MUDA)</option>
+            <option value="custom">+ Cipta Parti Politik Baharu Sendiri</option>
+          </select>
+        </div>
+        <div class="form-group" id="partyNameCustomGroup" style="display:none;">
+          <label>Nama Parti Baharu Anda</label>
+          <input type="text" id="partyNameCustom" value="Gabungan Reformasi Rakyat">
         </div>
         <div class="form-group">
           <label>Fokus Ideologi Utama</label>
@@ -157,6 +170,9 @@
       <div class="map-banner">
         <h2 style="font-size: 24px; color: #fff;">🇲🇾 Peringkat Persekutuan: Dewan Rakyat</h2>
         <div class="election-badge">🗳 General Election (222 Seats | Auto-Reset Every Midnight 12:00 AM MYT)</div>
+        <div style="margin-top:10px;">
+          <button class="btn-purple" onclick="resetElectionCycle()">🗳 Mula Semula Pilihan Raya (Reset Election Cycle)</button>
+        </div>
       </div>
 
       <div class="card">
@@ -166,8 +182,8 @@
         <table>
           <thead>
             <tr>
-              <th>Calon Politikus</th>
-              <th>Parti / Gabungan</th>
+              <th>Presiden / Pemimpin</th>
+              <th>Parti / Gabungan Sebenar</th>
               <th>Kekuatan Kempen</th>
               <th>Polling %</th>
               <th>Unjuran Kerusi Dewan Rakyat</th>
@@ -351,7 +367,13 @@
     <!-- TAB 8: ACTIONS & ATTACK ADS -->
     <div id="tabActions" class="tab-page" style="display: none;">
       <div class="card">
-        <div class="card-title">Tindakan Kempen & Penukaran Modal Liquid</div>
+        <div class="card-title">Pusat Tindakan & Strategi Kempen Politik</div>
+        <div class="grid-3" style="margin-bottom: 20px;">
+          <button class="btn-primary" style="padding:14px;" onclick="runCeramahAction()">📢 Ceramah Perdana & Jelajah Negeri (8 PP / MYR 15,000)</button>
+          <button class="btn-purple" style="padding:14px;" onclick="runSocialMediaCampaign()">📱 Kempen Media Sosial & Perang Persepsi (12 PP / MYR 25,000)</button>
+          <button class="btn-green" style="padding:14px;" onclick="runCorporateLobbying()">💼 Persidangan Lobi Korporat (+MYR 100,000 Dana)</button>
+        </div>
+
         <div class="grid-2">
           <div>
             <h3>Penukaran Liquid Capital Kepada Dana Kempen</h3>
@@ -365,12 +387,12 @@
 
           <div>
             <h3>Iklan Serangan & Kempen Politik</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Lancar iklan kempen serangan terhadap pesaing politikus:</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Lancar iklan kempen serangan terhadap parti pesaing:</p>
             <div class="form-group">
-              <label>Pilih Calon Pesaing:</label>
+              <label>Pilih Parti Pesaing:</label>
               <select id="attackTarget">
-                <option value="0">Dato' Sri Haris (Barisan Nasional)</option>
-                <option value="1">Tan Sri Razak (Perikatan Nasional)</option>
+                <option value="1">Perikatan Nasional (PN)</option>
+                <option value="2">Barisan Nasional (BN)</option>
               </select>
             </div>
             <button class="btn-red" style="width:100%;" onclick="runAttackAd()">Lancar Iklan Serangan (10 PP / MYR 30,000)</button>
