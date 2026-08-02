@@ -1,6 +1,6 @@
 /* ==========================================================================
-   POWER - Malaysia Geopolitics & Real-Time Midnight Simulator
-   Game Engine & Application Logic (Overhauled Edition)
+   POWER - Malaysia Geopolitics, Cabinet & 1-Week Election Simulator
+   Game Engine & Application Logic (Complete Expanded Edition)
    ========================================================================== */
 
 /* Real Malaysian Political Parties & Coalitions */
@@ -117,18 +117,34 @@ function defaultGameState() {
   return {
     player: {
       name: "Wan Luqman",
-      pp: 50.0,
-      funds: 500000,
+      pp: 400.0,
+      funds: 1000000,
       portrait: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop",
       location: "Selangor / Malaysia",
       partyPower: 220,
-      reputation: 68.5,
+      reputation: 75.0,
       btc: 0,
       bio: "Memacu reformasi ekonomi, kebajikan rakyat dan perpaduan nasional.",
       partyName: "Pakatan Harapan (PH)",
       ideology: "Social Democracy / Reformist",
-      role: "Presiden Parti / Calon PM"
+      role: "Perdana Menteri / Presiden Parti"
     },
+    cabinet: {
+      finance: "Rafizi Ramli (Menteri Kewangan)",
+      defense: "Mohamad Hasan (Menteri Pertahanan)",
+      home: "Saifuddin Nasution (Menteri Dalam Negeri)",
+      education: "Fadhlina Sidek (Menteri Pendidikan)",
+      health: "Dzulkefly Ahmad (Menteri Kesihatan)",
+      foreign: "Zambry Abdul Kadir (Menteri Luar Negeri)"
+    },
+    sprmAudit: { status: "Bersih", risk: "Rendah", activeInvestigations: 0 },
+    pdrmStatus: { orderLevel: "Aman", riotRisk: "Rendah", officersDeployed: 12000 },
+    articles: [
+      { title: "Rancangan Pembangunan Ekonomi Digital Selangor 2026", author: "Wan Luqman", date: "2 jam lepas", views: 4250, likes: 890 }
+    ],
+    chatMessages: [
+      { sender: "Sistem", text: "Selamat datang ke Server Geopolitik & Parlimen Malaysia!" }
+    ],
     parties: JSON.parse(JSON.stringify(REAL_MALAYSIAN_PARTIES)),
     states: defaultStates(),
     lobbies: [
@@ -218,6 +234,8 @@ async function routeAfterAuth() {
     if (gs.lobbies) state.lobbies = gs.lobbies;
     if (gs.bills) state.bills = gs.bills;
     if (gs.roster) state.roster = gs.roster;
+    if (gs.cabinet) state.cabinet = gs.cabinet;
+    if (gs.articles) state.articles = gs.articles;
     lastMidnightReset = gs.last_midnight_reset;
   }
 
@@ -228,8 +246,9 @@ async function routeAfterAuth() {
 
   applyCatchUpMidnightResets();
   startMYTMidnightClock();
+  start1WeekElectionCountdown();
   updateUI();
-  showToast(`Selamat kembali, ${state.player.name}! Data permainan dimuatkan.`);
+  showToast(`Selamat kembali, ${state.player.name}! 400 PP & MYR 1 Million sedia.`);
 }
 
 function setBtnLoading(id, loading, label) {
@@ -364,8 +383,9 @@ async function initGame(e) {
   document.getElementById("mainFooter").style.display = "flex";
 
   startMYTMidnightClock();
+  start1WeekElectionCountdown();
   updateUI();
-  showToast(`Selamat datang ${state.player.name}! Mengambil alih ${state.player.partyName} dengan MYR 500,000 modal kempen.`);
+  showToast(`Selamat datang ${state.player.name}! Bermula dengan 400 PP & MYR 1,000,000 modal kempen.`);
 }
 
 function buildGameStateRow() {
@@ -383,6 +403,8 @@ function buildGameStateRow() {
     lobbies: state.lobbies,
     bills: state.bills,
     roster: state.roster,
+    cabinet: state.cabinet,
+    articles: state.articles,
     last_midnight_reset: lastMidnightReset || new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -427,9 +449,9 @@ function applyCatchUpMidnightResets() {
   let daysPassed = Math.floor((nowMyt.setHours(0,0,0,0) - new Date(lastMytCalc).setHours(0,0,0,0)) / 86400000);
 
   if (daysPassed > 0) {
-    state.player.pp += 15.0 * daysPassed;
-    state.player.funds += 50000 * daysPassed;
-    showToast(`🌅 ${daysPassed} reset harian tertangguh diproses: +${(15*daysPassed).toFixed(1)} PP & +MYR ${(50000*daysPassed).toLocaleString()}!`);
+    state.player.pp += 20.0 * daysPassed;
+    state.player.funds += 100000 * daysPassed;
+    showToast(`🌅 ${daysPassed} reset harian tertangguh diproses: +${(20*daysPassed).toFixed(1)} PP & +MYR ${(100000*daysPassed).toLocaleString()}!`);
   }
   lastMidnightReset = new Date().toISOString();
   queueSave();
@@ -456,11 +478,30 @@ function startMYTMidnightClock() {
   }, 1000);
 }
 
+function start1WeekElectionCountdown() {
+  setInterval(() => {
+    const now = new Date();
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const remainder = weekMs - (now.getTime() % weekMs);
+
+    const days = Math.floor(remainder / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remainder % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((remainder % (1000 * 60 * 60)) / (1000 * 60));
+
+    const el = document.getElementById("weekElectionTimer");
+    if (el) el.innerText = `${days} Hari ${hours} Jam ${mins} Minit`;
+
+    if (days === 0 && hours === 0 && mins === 0) {
+      resetElectionCycle();
+    }
+  }, 10000);
+}
+
 function executeDailyMidnightReset() {
-  state.player.pp += 15.0;
-  state.player.funds += 50000;
+  state.player.pp += 20.0;
+  state.player.funds += 100000;
   lastMidnightReset = new Date().toISOString();
-  showToast("🌅 RESET HARIAN MIDNIGHT (12:00 AM MYT): +15 Political Power & +MYR 50,000 ditambah!");
+  showToast("🌅 RESET HARIAN MIDNIGHT (12:00 AM MYT): +20 Political Power & +MYR 100,000 ditambah!");
   updateUI();
   queueSave();
 }
@@ -470,9 +511,72 @@ function resetElectionCycle() {
     p.polling = (Math.random() * 25 + 10);
     p.seats = Math.round(222 * (p.polling / 100));
   });
-  showToast("🗳 Pilihan Raya Dimulakan Semula! Unjuran kerusi & polling dikemaskini.");
+  showToast("🗳 1 WEEKS IRL ELECTION RESET: Parlimen dibubarkan & kerusi dikemaskini secara automatik!");
   updateUI();
   queueSave();
+}
+
+function updateCabinetMinister(role, name) {
+  if (state.cabinet) {
+    state.cabinet[role] = name;
+    showToast(`Kabinet dikemaskini: ${role.toUpperCase()} kini dipegang oleh ${name}`);
+    updateUI();
+    queueSave();
+  }
+}
+
+function publishArticle() {
+  const title = document.getElementById("articleTitleInput").value;
+  const content = document.getElementById("articleContentInput").value;
+  if (title && content) {
+    state.articles.unshift({
+      title: title,
+      author: state.player.name,
+      date: "Baru sahaja",
+      views: 120,
+      likes: 45
+    });
+    state.player.reputation = Math.min(100, state.player.reputation + 4.0);
+    state.player.pp += 10;
+    document.getElementById("articleTitleInput").value = "";
+    document.getElementById("articleContentInput").value = "";
+    showToast("📰 Artikel Politik Berjaya Diterbitkan! Reputasi & PP meningkat.");
+    updateUI();
+    queueSave();
+  } else showToast("Sila masukkan tajuk dan kandungan artikel!", true);
+}
+
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  if (input && input.value) {
+    state.chatMessages.push({
+      sender: state.player.name,
+      text: input.value
+    });
+    input.value = "";
+    renderChat();
+  }
+}
+
+function renderChat() {
+  const box = document.getElementById("publicChatBox");
+  if (!box) return;
+  box.innerHTML = "";
+  state.chatMessages.forEach(c => {
+    box.innerHTML += `<div class="log-item"><b style="color:var(--accent);">${c.sender}:</b> ${c.text}</div>`;
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function triggerSPRMInvestigation() {
+  showToast("🔍 SPRM melancarkan audit aset & siasatan integriti!");
+  state.sprmAudit.activeInvestigations++;
+  updateUI();
+}
+
+function triggerPDRMSecurity() {
+  showToast("👮 PDRM mengetatkan kawalan keselamatan kawasan!");
+  updateUI();
 }
 
 function showToast(msg, isError) {
@@ -481,6 +585,14 @@ function showToast(msg, isError) {
   banner.className = isError ? "error" : "";
   banner.style.display = "block";
   setTimeout(() => { banner.style.display = "none"; }, 3500);
+}
+
+function advanceTurn() {
+  state.player.pp += 10.0;
+  state.player.funds += 50000;
+  showToast("Kempen Turn Selesai! +10 Political Power (PP) & +MYR 50,000 Liquid Capital.");
+  updateUI();
+  queueSave();
 }
 
 function updateUI() {
@@ -499,15 +611,63 @@ function updateUI() {
   renderBills();
   renderRoster();
   renderMBRoster();
+  renderCabinet();
+  renderArticles();
+  renderChat();
   loadStateDUN(state.selectedState);
-  document.getElementById("econSlider").value = state.econPos;
-  document.getElementById("socialSlider").value = state.socialPos;
-  document.getElementById("lblEconPos").innerText = state.spectrum[state.econPos - 1];
-  document.getElementById("lblSocialPos").innerText = state.spectrum[state.socialPos - 1];
+  
+  if (document.getElementById("econSlider")) {
+    document.getElementById("econSlider").value = state.econPos;
+    document.getElementById("socialSlider").value = state.socialPos;
+    document.getElementById("lblEconPos").innerText = state.spectrum[state.econPos - 1];
+    document.getElementById("lblSocialPos").innerText = state.spectrum[state.socialPos - 1];
+  }
+}
+
+function renderCabinet() {
+  const container = document.getElementById("cabinetListContainer");
+  if (!container || !state.cabinet) return;
+  container.innerHTML = "";
+  for (const [role, ministerName] of Object.entries(state.cabinet)) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.background = "rgba(0,0,0,0.3)";
+    card.style.padding = "12px";
+    card.innerHTML = `
+      <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">${role.toUpperCase()}</div>
+      <div style="font-size:14px; font-weight:bold; color:var(--accent); margin-top:2px;">${ministerName}</div>
+      <button class="btn-blue" style="margin-top:8px; width:100%; padding:4px 8px; font-size:11px;" onclick="promptCabinetChange('${role}')">Tukar Menteri</button>
+    `;
+    container.appendChild(card);
+  }
+}
+
+function promptCabinetChange(role) {
+  const newName = prompt(`Masukkan nama baru untuk jawatan ${role.toUpperCase()}:`, state.cabinet[role]);
+  if (newName) {
+    updateCabinetMinister(role, newName);
+  }
+}
+
+function renderArticles() {
+  const list = document.getElementById("articlesListContainer");
+  if (!list || !state.articles) return;
+  list.innerHTML = "";
+  state.articles.forEach(a => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.background = "rgba(0,0,0,0.3)";
+    card.innerHTML = `
+      <h4 style="color:var(--accent); font-size:15px;">${a.title}</h4>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Oleh <b>${a.author}</b> • ${a.date} • 👁 ${a.views} Pembaca • 👍 ${a.likes} Menyukai</div>
+    `;
+    list.appendChild(card);
+  });
 }
 
 function populateStateSelect() {
   const sel = document.getElementById("stateSelect");
+  if (!sel) return;
   if (sel.dataset.filled) { sel.value = state.selectedState; return; }
   sel.innerHTML = "";
   for (const [name, info] of Object.entries(state.states)) {
@@ -524,13 +684,14 @@ function populateStateSelect() {
 
 function renderPartiesAndCandidates() {
   const tbody = document.getElementById("candidateTableBody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   state.parties.sort((a, b) => b.seats - a.seats);
   const leading = state.parties[0];
 
-  document.getElementById("pmStatus").innerText =
-    `YAB Perdana Menteri: ${leading.leader} (${leading.name} - ${leading.seats} Kerusi Dewan Rakyat)`;
+  const pmEl = document.getElementById("pmStatus");
+  if (pmEl) pmEl.innerText = `YAB Perdana Menteri: ${leading.leader} (${leading.name} - ${leading.seats} Kerusi Dewan Rakyat)`;
 
   state.parties.forEach((p, idx) => {
     const tr = document.createElement("tr");
@@ -551,7 +712,7 @@ function renderPartiesAndCandidates() {
       </td>
       <td style="font-weight:bold; color:var(--success);">${p.seats} Kerusi</td>
       <td>
-        <button class="btn-blue" onclick="campaignForParty(${idx})">📢 Kempen Parti (10 PP, MYR 100k)</button>
+        <button class="btn-blue" onclick="campaignForParty(${idx})">📢 Kempen (10 PP, MYR 100k)</button>
         <button class="btn-purple" onclick="takeoverParty(${idx})">👑 Ambil Alih Parti</button>
       </td>
     `;
@@ -591,14 +752,23 @@ function loadStateDUN(stateName) {
   state.selectedState = stateName;
   const s = state.states[stateName];
   if (!s) return;
-  document.getElementById("stateTitle").innerText =
-    stateName === "Wilayah Persekutuan" ? "Wilayah Persekutuan (KL / Putrajaya / Labuan)" : `Dewan Undangan Negeri (DUN) ${stateName}`;
-  document.getElementById("stateTotalSeats").innerText = s.seats > 0 ? `${s.seats} Kerusi` : "Tiada DUN";
-  document.getElementById("stateMajority").innerText = s.seats > 0 ? `${majorityOf(s.seats)} Kerusi` : "N/A";
-  document.getElementById("stateMB").innerText = s.mb;
-  document.getElementById("stateGov").innerText = s.gov;
+  const titleEl = document.getElementById("stateTitle");
+  if (titleEl) titleEl.innerText = stateName === "Wilayah Persekutuan" ? "Wilayah Persekutuan (KL / Putrajaya / Labuan)" : `Dewan Undangan Negeri (DUN) ${stateName}`;
+  
+  const seatsEl = document.getElementById("stateTotalSeats");
+  if (seatsEl) seatsEl.innerText = s.seats > 0 ? `${s.seats} Kerusi` : "Tiada DUN";
+  
+  const majEl = document.getElementById("stateMajority");
+  if (majEl) majEl.innerText = s.seats > 0 ? `${majorityOf(s.seats)} Kerusi` : "N/A";
+  
+  const mbEl = document.getElementById("stateMB");
+  if (mbEl) mbEl.innerText = s.mb;
+  
+  const govEl = document.getElementById("stateGov");
+  if (govEl) govEl.innerText = s.gov;
 
   const dunBody = document.getElementById("dunSeatTableBody");
+  if (!dunBody) return;
   dunBody.innerHTML = "";
   if (s.seats === 0) {
     dunBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Wilayah Persekutuan tidak mempunyai DUN — ditadbir terus oleh Kerajaan Persekutuan.</td></tr>`;
@@ -622,8 +792,17 @@ function campaignStateDUN() {
   } else showToast("Memerlukan sekurang-kurangnya 10 PP dan MYR 50,000!", true);
 }
 
+function triggerPRNElection() {
+  if (state.states[state.selectedState]) {
+    showToast(`🗳 Pilihan Raya Negeri (PRN) ${state.selectedState} dilancarkan secara rasmi!`);
+    updateUI();
+    queueSave();
+  }
+}
+
 function renderMBRoster() {
   const tbody = document.getElementById("mbRosterTableBody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   for (const [st, info] of Object.entries(state.states)) {
     const tr = document.createElement("tr");
@@ -640,6 +819,7 @@ function renderMBRoster() {
 
 function renderLobbies() {
   const tbody = document.getElementById("lobbyTableBody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   state.lobbies.forEach((l, idx) => {
     const tr = document.createElement("tr");
@@ -674,6 +854,7 @@ function lobbyGroup(idx) {
 
 function renderBills() {
   const tbody = document.getElementById("billsTableBody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   state.bills.forEach((b, idx) => {
     const tr = document.createElement("tr");
@@ -704,6 +885,7 @@ function voteBill(idx, vote) {
 
 function renderRoster() {
   const tbody = document.getElementById("partyRosterBody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   state.roster.forEach(r => {
     const tr = document.createElement("tr");
@@ -859,4 +1041,12 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-page').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).style.display = 'block';
+}
+EOF
+}
+
+  if (tabId === 'tabPortfolio') {
+    document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
+    document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
+  }
 }
