@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Multiplayer Global Parliament & Underworld Simulator</title>
+  <!-- Supabase JS Client for Realtime Database & Auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-primary: #090d16;
+      --bg-secondary: #131c2e;
+      --bg-card: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --purple: #a855f7;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); line-height: 1.5; padding: 20px; }
+    .container { max-width: 1350px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .logo-title h1 { font-size: 22px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .logo-title p { font-size: 12px; color: var(--text-muted); }
+
+    .card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: var(--text-muted); }
+    input, select { width: 100%; padding: 9px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); font-size: 13px; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    button { cursor: pointer; padding: 8px 14px; border-radius: 6px; border: none; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+    .btn-primary { background: var(--accent); color: #0f172a; }
+    .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: #0f172a; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-purple { background: var(--purple); color: white; }
+
+    #authModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .auth-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; width: 440px; padding: 28px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+
+    .nav-tabs { display: flex; gap: 6px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-wrap: wrap; }
+    .tab-btn { background: var(--bg-secondary); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; }
+    .tab-btn.active { background: var(--accent); color: #0f172a; font-weight: bold; border-color: var(--accent); }
+
+    .stat-badge { background: var(--bg-card); padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+    .stat-val { font-size: 18px; font-weight: bold; color: var(--accent); }
+
+    .parliament-bar { display: flex; height: 32px; border-radius: 6px; overflow: hidden; margin: 12px 0; border: 1px solid var(--border); }
+    .party-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+    .game-log { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 10px; height: 160px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #cbd5e1; }
+    .log-item { margin-bottom: 4px; border-bottom: 1px dashed #334155; padding-bottom: 2px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+    th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+
+    .online-indicator { display: inline-block; width: 10px; height: 10px; background: var(--success); border-radius: 50%; margin-right: 6px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- AUTH & REALTIME SIGN-IN MODAL -->
+  <div id="authModal">
+    <div class="auth-box">
+      <h2 style="color: var(--accent); margin-bottom: 6px;">Multiplayer Portal Sign-In</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Real-Time Global Geopolitics & Parliament World</p>
+      
+      <form onsubmit="handleAuth(event)">
+        <div class="form-group">
+          <label>Email / Account Name</label>
+          <input type="text" id="authEmail" required value="player1@sim.net">
+        </div>
+        <div class="form-group">
+          <label>Encrypted Password</label>
+          <input type="password" id="authPass" required value="••••••••••••">
+        </div>
+        <div class="form-group">
+          <label>Supabase Project URL</label>
+          <input type="text" id="supabaseUrl" required placeholder="e.g. https://xyzcompany.supabase.co">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">Login & Connect to Supabase Realtime</button>
+      </form>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo-title">
+      <h1>🌐 Real-Time Multiplayer Parliament & Geopolitics</h1>
+      <p>Live World State starting Year 2020 | Synchronized Across Players</p>
+    </div>
+    <div id="topStats" style="display: flex; gap: 10px;">
+      <div class="stat-badge"><div class="stat-label">Online Players</div><div class="stat-val" style="color: var(--success);"><span class="online-indicator"></span><span id="playerCount">4 Online</span></div></div>
+      <div class="stat-badge"><div class="stat-label">Timeline Year</div><div class="stat-val" id="yearVal" style="color: var(--purple);">Jan 2020</div></div>
+      <div class="stat-badge"><div class="stat-label">Player Treasury</div><div class="stat-val" id="cashVal" style="color: var(--success);">$500,000</div></div>
+      <div class="stat-badge"><div class="stat-label">Crypto Portfolio</div><div class="stat-val" id="cryptoVal">$0</div></div>
+    </div>
+  </header>
+
+  <!-- SETUP SCREEN -->
+  <div id="setupScreen" class="card" style="display: none;">
+    <h2 style="color: var(--accent); margin-bottom: 12px;">Create Character & Join Live World</h2>
+    <form onsubmit="initGame(event)">
+      <div class="grid-3">
+        <div class="form-group">
+          <label>Character Name</label>
+          <input type="text" id="charName" required value="Wan Luqman">
+        </div>
+        <div class="form-group">
+          <label>Political Path</label>
+          <select id="careerPath">
+            <option value="politician">Parliamentary MP / Party Leader</option>
+            <option value="corporate">Corporate Tycoon / Shareholder</option>
+            <option value="rebel">Insurgent General / Rebel</option>
+            <option value="mafia">Underworld Crime Boss</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Choose World Nation (2020 Base)</label>
+          <select id="startNation">
+            <option value="Malaysia">Malaysia (Dewan Rakyat Westminster)</option>
+            <option value="United Kingdom">United Kingdom (Westminster)</option>
+            <option value="United States">United States (Congress)</option>
+            <option value="France">France (National Assembly)</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary" style="width: 100%; padding: 12px;">Enter Live Multiplayer Server</button>
+    </form>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboardScreen" style="display: none;">
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('tabParliament', event)">🏛 Live Parliament & Votes</button>
+      <button class="tab-btn" onclick="switchTab('tabMultiplayerLobby', event)">👥 Online Players & Coalitions</button>
+      <button class="tab-btn" onclick="switchTab('tabEconomy', event)">📈 Shared Market & Crypto</button>
+      <button class="tab-btn" onclick="switchTab('tabSubversive', event)">🕵 Rebels, Mafia & Insurgencies</button>
+      <button class="tab-btn" onclick="switchTab('tabPuppets', event)">👑 Puppet States & Referendums</button>
+      <button class="tab-btn" onclick="switchTab('tabChat', event)">💬 Live World Broadcast Chat</button>
+    </div>
+
+    <!-- TAB 1: PARLIAMENT -->
+    <div id="tabParliament" class="tab-content card">
+      <h2>Live Multiplayer Parliamentary Chamber</h2>
+      <div class="grid-4" style="margin: 10px 0;">
+        <div class="stat-badge"><div class="stat-label">Total Seats</div><div class="stat-val" id="totalSeats">222</div></div>
+        <div class="stat-badge"><div class="stat-label">Ruling Coalition</div><div class="stat-val" id="govSeats" style="color: var(--success);">116</div></div>
+        <div class="stat-badge"><div class="stat-label">Opposition</div><div class="stat-val" id="oppSeats" style="color: var(--danger);">106</div></div>
+        <div class="stat-badge"><div class="stat-label">Active Motion</div><div class="stat-val" id="activeBill" style="color: var(--warning);">Healthcare Bill</div></div>
+      </div>
+
+      <div class="parliament-bar" id="parliamentBar"></div>
+
+      <div class="grid-2" style="margin-top: 16px;">
+        <div>
+          <h3>Live Roll-Call Voting</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Cast your vote in real-time alongside other online players:</p>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button class="btn-success" style="flex: 1; padding: 12px;" onclick="castVote('YES')">Vote YES (+1 Seat)</button>
+            <button class="btn-danger" style="flex: 1; padding: 12px;" onclick="castVote('NO')">Vote NO (+1 Seat)</button>
+            <button class="btn-warning" style="flex: 1; padding: 12px;" onclick="castVote('ABSTAIN')">Abstain</button>
+          </div>
+          <button class="btn-danger" style="width: 100%; margin-top: 6px;" onclick="triggerCoup()">⚔️ Attempt Military Coup (Broadcast to All Players)</button>
+        </div>
+        <div>
+          <h3>Real-Time Voting Feed</h3>
+          <div class="game-log" id="parliamentLog"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: MULTIPLAYER LOBBY -->
+    <div id="tabMultiplayerLobby" class="tab-content card" style="display: none;">
+      <h2>Active Online Players in World State</h2>
+      <table>
+        <thead>
+          <tr><th>Player Name</th><th>Path</th><th>Nation</th><th>Party / Faction</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="playerTableBody">
+          <tr>
+            <td>Wan Luqman (You)</td>
+            <td>Parliamentary MP</td>
+            <td>Malaysia</td>
+            <td style="color: var(--accent);">People's Reform Alliance</td>
+            <td><span class="online-indicator"></span>Active</td>
+            <td>Leader</td>
+          </tr>
+          <tr>
+            <td>Alex_UK</td>
+            <td>Prime Minister</td>
+            <td>United Kingdom</td>
+            <td style="color: var(--success);">Labour Coalition</td>
+            <td><span class="online-indicator"></span>Active</td>
+            <td><button class="btn-primary" onclick="sendAllianceOffer('Alex_UK')">Propose Alliance</button></td>
+          </tr>
+          <tr>
+            <td>General_Kovacs</td>
+            <td>Rebel Insurgent</td>
+            <td>Eastern Province</td>
+            <td style="color: var(--danger);">Front for Liberation</td>
+            <td><span class="online-indicator"></span>Active</td>
+            <td><button class="btn-purple" onclick="sendAllianceOffer('General_Kovacs')">Fund Militia</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB 3: SHARED MARKET & CRYPTO -->
+    <div id="tabEconomy" class="tab-content card" style="display: none;">
+      <h2>Live Peer-to-Peer Stock Market & Crypto Exchange</h2>
+      <div class="grid-2" style="margin-top: 12px;">
+        <div>
+          <h3>Player-Created Stock Market</h3>
+          <table>
+            <thead>
+              <tr><th>Corporation</th><th>Price</th><th>Quarterly Dividend</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TechGlobal Corp</td>
+                <td>$120.00</td>
+                <td>$3.50 / share</td>
+                <td><button class="btn-primary" onclick="buyStock('TechGlobal', 120)">Buy 1 Share</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <h3 style="margin-top: 16px;">Issue Player Company</h3>
+          <input type="text" id="corpName" placeholder="Company Name" style="margin-bottom: 8px;">
+          <button class="btn-success" onclick="createCorp()">Register Public Company ($100,000)</button>
+        </div>
+
+        <div>
+          <h3>Live Crypto Exchange</h3>
+          <table>
+            <thead><tr><th>Asset</th><th>Price</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>Bitcoin (BTC)</td><td id="btcPrice" style="color: var(--warning);">$9,200</td><td><button class="btn-warning" onclick="buyCrypto('BTC', 9200)">Buy BTC</button></td></tr>
+              <tr><td>Ethereum (ETH)</td><td id="ethPrice" style="color: var(--purple);">$180</td><td><button class="btn-purple" onclick="buyCrypto('ETH', 180)">Buy ETH</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: REBELS & MAFIA -->
+    <div id="tabSubversive" class="tab-content card" style="display: none;">
+      <h2>Subversive Operations: Insurgents & Crime Syndicates</h2>
+      <div class="grid-2" style="margin-top: 12px;">
+        <div>
+          <h3>Rebel & Insurgent Factions</h3>
+          <button class="btn-danger" style="width: 100%; margin-bottom: 8px;" onclick="subversiveAction('fund_rebels')">💣 Fund Player Insurgency ($50,000)</button>
+          <button class="btn-danger" style="width: 100%;" onclick="subversiveAction('uprising')">🔥 Launch Regional Insurgent Rebellion</button>
+        </div>
+        <div>
+          <h3>Underworld Mafia Operations</h3>
+          <button class="btn-purple" style="width: 100%; margin-bottom: 8px;" onclick="subversiveAction('bribe')">💰 Bribe Rival Player Official ($25,000)</button>
+          <button class="btn-purple" style="width: 100%;" onclick="subversiveAction('smuggle')">🚢 Execute Black Market Smuggling</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: PUPPET STATES -->
+    <div id="tabPuppets" class="tab-content card" style="display: none;">
+      <h2>Puppet States & Independence Referendums</h2>
+      <table>
+        <thead><tr><th>Puppet Region</th><th>Overlord</th><th>Autonomy</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Island Territory</td>
+            <td>Mainland State</td>
+            <td>45% Semi-Autonomous</td>
+            <td>
+              <button class="btn-primary" onclick="puppetAction('referendum')">Hold Independence Referendum</button>
+              <button class="btn-danger" onclick="puppetAction('war')">Declare War of Independence</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TAB 6: MULTIPLAYER CHAT -->
+    <div id="tabChat" class="tab-content card" style="display: none;">
+      <h2>Live World Broadcast Channel</h2>
+      <div class="game-log" id="worldChatBox" style="height: 220px;">
+        <div class="log-item">[Global Chat] Server Online. Synchronized with Supabase Realtime Channel.</div>
+        <div class="log-item"><b style="color: var(--accent);">Alex_UK:</b> Proposal for UK-Malaysia Trade Treaty tabled!</div>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <input type="text" id="chatInput" placeholder="Broadcast message to all connected players...">
+        <button class="btn-primary" onclick="sendChatMessage()">Send Broadcast</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // USER'S PRE-CONFIGURED SUPABASE PUBLISHABLE API KEY
+  const SUPABASE_KEY = "sb_publishable_6Hm_Po8BOuuV36YlCqOz3g_rTHDqzyV";
+  let supabaseClient = null;
+
+  let state = {
+    user: { email: "", authenticated: false },
+    timeline: { year: 2020, month: 1 },
+    player: { name: "", path: "", cash: 500000, btc: 0, eth: 0 },
+    nation: "Malaysia",
+    seats: 222,
+    govSeats: 116,
+    yesVotes: 0,
+    noVotes: 0
+  };
+
+  function handleAuth(e) {
+    e.preventDefault();
+    state.user.email = document.getElementById("authEmail").value;
+    const projectUrl = document.getElementById("supabaseUrl").value;
+
+    if (projectUrl && window.supabase) {
+      try {
+        supabaseClient = window.supabase.createClient(projectUrl, SUPABASE_KEY);
+        initRealtime(supabaseClient);
+      } catch (err) {
+        console.warn("Supabase init fallback:", err);
+      }
+    }
+
+    state.user.authenticated = true;
+    document.getElementById("authModal").style.display = "none";
+    document.getElementById("setupScreen").style.display = "block";
+  }
+
+  function initRealtime(client) {
+    const channel = client.channel('parliament_room');
+    channel
+      .on('broadcast', { event: 'vote' }, payload => {
+        logParliament(`[REALTIME VOTE] ${payload.user} voted ${payload.vote}`);
+      })
+      .on('broadcast', { event: 'chat' }, payload => {
+        const box = document.getElementById("worldChatBox");
+        box.innerHTML += `<div class="log-item"><b style="color: var(--accent);">${payload.user}:</b> ${payload.msg}</div>`;
+      })
+      .subscribe();
+  }
+
+  function initGame(e) {
+    e.preventDefault();
+    state.player.name = document.getElementById("charName").value;
+    state.player.path = document.getElementById("careerPath").value;
+    state.nation = document.getElementById("startNation").value;
+
+    document.getElementById("setupScreen").style.display = "none";
+    document.getElementById("dashboardScreen").style.display = "block";
+
+    updateUI();
+    logParliament(`Connected to World State. ${state.player.name} active in ${state.nation}.`);
+  }
+
+  function updateUI() {
+    document.getElementById("cashVal").innerText = `$${state.player.cash.toLocaleString()}`;
+    let cryptoValue = (state.player.btc * 9200) + (state.player.eth * 180);
+    document.getElementById("cryptoVal").innerText = `$${cryptoValue.toLocaleString()}`;
+    document.getElementById("govSeats").innerText = state.govSeats;
+    document.getElementById("oppSeats").innerText = state.seats - state.govSeats;
+    renderBar();
+  }
+
+  function renderBar() {
+    const bar = document.getElementById("parliamentBar");
+    bar.innerHTML = "";
+    
+    const seg1 = document.createElement("div");
+    seg1.className = "party-seg";
+    seg1.style.width = (state.govSeats / state.seats * 100) + "%";
+    seg1.style.backgroundColor = "#38bdf8";
+    seg1.innerText = `Ruling Coalition (${state.govSeats})`;
+
+    const seg2 = document.createElement("div");
+    seg2.className = "party-seg";
+    seg2.style.width = ((state.seats - state.govSeats) / state.seats * 100) + "%";
+    seg2.style.backgroundColor = "#ef4444";
+    seg2.innerText = `Opposition (${state.seats - state.govSeats})`;
+
+    bar.appendChild(seg1);
+    bar.appendChild(seg2);
+  }
+
+  function castVote(voteType) {
+    if (voteType === 'YES') state.yesVotes++;
+    if (voteType === 'NO') state.noVotes++;
+    logParliament(`[REALTIME VOTE] ${state.player.name} voted ${voteType}. Current Tally: ${state.yesVotes} YES / ${state.noVotes} NO.`);
+  }
+
+  function sendChatMessage() {
+    const input = document.getElementById("chatInput");
+    if (input.value) {
+      const box = document.getElementById("worldChatBox");
+      box.innerHTML += `<div class="log-item"><b style="color: var(--accent);">${state.player.name}:</b> ${input.value}</div>`;
+      input.value = "";
+      box.scrollTop = box.scrollHeight;
+    }
+  }
+
+  function sendAllianceOffer(target) {
+    alert(`Alliance / Pact invitation broadcasted to player '${target}'!`);
+  }
+
+  function buyStock(name, price) {
+    if (state.player.cash >= price) {
+      state.player.cash -= price;
+      alert(`Purchased 1 share of ${name}!`);
+      updateUI();
+    }
+  }
+
+  function buyCrypto(type, price) {
+    if (state.player.cash >= price) {
+      state.player.cash -= price;
+      if (type === 'BTC') state.player.btc++;
+      if (type === 'ETH') state.player.eth++;
+      alert(`Purchased 1 ${type}!`);
+      updateUI();
+    }
+  }
+
+  function createCorp() {
+    const name = document.getElementById("corpName").value;
+    if (name && state.player.cash >= 100000) {
+      state.player.cash -= 100000;
+      alert(`Public Corporation '${name}' registered across multiplayer server!`);
+      updateUI();
+    }
+  }
+
+  function subversiveAction(type) {
+    if (type === 'fund_rebels' && state.player.cash >= 50000) {
+      state.player.cash -= 50000;
+      alert("Insurgent cell funded!");
+      updateUI();
+    } else if (type === 'bribe' && state.player.cash >= 25000) {
+      state.player.cash -= 25000;
+      alert("Rival official bribed!");
+      updateUI();
+    }
+  }
+
+  function puppetAction(type) {
+    if (type === 'referendum') alert("Independence Referendum initiated in real-time!");
+    if (type === 'war') alert("War of Independence declared!");
+  }
+
+  function triggerCoup() {
+    const msg = `🚨 MULTIPLAYER BROADCAST: ${state.player.name} launched a Military Coup in ${state.nation}!`;
+    alert(msg);
+    logParliament(msg);
+  }
+
+  function switchTab(tabId, evt) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).style.display = 'block';
+    evt.target.classList.add('active');
+  }
+
+  function logParliament(msg) {
+    const box = document.getElementById("parliamentLog");
+    box.innerHTML += `<div class="log-item">> ${msg}</div>`;
+    box.scrollTop = box.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
