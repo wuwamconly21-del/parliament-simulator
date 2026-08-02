@@ -1,5 +1,5 @@
 /* ==========================================================================
-   POWER - Malaysia Geopolitics, Stock Exchange & MYTok Simulator
+   POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
    Game Engine & Application Logic ("A House Divided" Sleek Edition)
    ========================================================================== */
 
@@ -24,6 +24,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-energy",
     exchange: "Bursa Main",
     price: 18.50,
+    dividend: 0.85, // MYR Dividend per share / day
+    owned: 200,     // Starting owned shares
     mktCap: "MYR 36.6B",
     dailyRev: "+MYR 8.5M/d",
     logo: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b2?w=100&auto=format&fit=crop",
@@ -36,6 +38,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-banking",
     exchange: "Bursa Main",
     price: 9.80,
+    dividend: 0.65,
+    owned: 500,
     mktCap: "MYR 118.2B",
     dailyRev: "+MYR 14.2M/d",
     logo: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=100&auto=format&fit=crop",
@@ -48,6 +52,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-retail",
     exchange: "Bursa Main",
     price: 4.30,
+    dividend: 0.35,
+    owned: 1000,
     mktCap: "MYR 29.7B",
     dailyRev: "+MYR 6.1M/d",
     logo: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=100&auto=format&fit=crop",
@@ -60,6 +66,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-energy",
     exchange: "Bursa Main",
     price: 13.20,
+    dividend: 0.75,
+    owned: 100,
     mktCap: "MYR 76.4B",
     dailyRev: "+MYR 11.8M/d",
     logo: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=100&auto=format&fit=crop",
@@ -72,6 +80,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-realestate",
     exchange: "Bursa ACE",
     price: 1.25,
+    dividend: 0.12,
+    owned: 2000,
     mktCap: "MYR 12.5M",
     dailyRev: "+MYR 450K/d",
     logo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100&auto=format&fit=crop",
@@ -84,6 +94,8 @@ const BURSA_MALAYSIA_CORPORATIONS = [
     sectorClass: "sector-manufacturing",
     exchange: "Bursa Main",
     price: 6.10,
+    dividend: 0.45,
+    owned: 300,
     mktCap: "MYR 16.5B",
     dailyRev: "+MYR 3.9M/d",
     logo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=100&auto=format&fit=crop",
@@ -490,6 +502,31 @@ function startLivingStockEngine() {
   }, 4000);
 }
 
+function calculateTotalDailyDividends() {
+  let total = 0;
+  state.corporations.forEach(c => {
+    if (c.owned && c.owned > 0) {
+      total += (c.owned * (c.dividend || 0.50));
+    }
+  });
+  if (state.sdnBhdList) {
+    state.sdnBhdList.forEach(s => {
+      total += 10000;
+    });
+  }
+  return Math.round(total);
+}
+
+function calculateTotalStockPortfolioValue() {
+  let total = 0;
+  state.corporations.forEach(c => {
+    if (c.owned && c.owned > 0) {
+      total += (c.owned * c.price);
+    }
+  });
+  return Math.round(total);
+}
+
 function buildGameStateRow() {
   return {
     user_id: currentUser ? currentUser.id : "local_user",
@@ -560,9 +597,10 @@ function applyCatchUpMidnightResets() {
   let daysPassed = Math.floor((nowMyt.setHours(0,0,0,0) - new Date(lastMytCalc).setHours(0,0,0,0)) / 86400000);
 
   if (daysPassed > 0) {
+    const divs = calculateTotalDailyDividends() * daysPassed;
     state.player.pp += 20.0 * daysPassed;
-    state.player.funds += 100000 * daysPassed;
-    showToast(`🌅 ${daysPassed} reset harian tertangguh diproses: +${(20*daysPassed).toFixed(1)} PP & +MYR ${(100000*daysPassed).toLocaleString()}!`);
+    state.player.funds += (100000 * daysPassed) + divs;
+    showToast(`🌅 ${daysPassed} reset harian diproses: +${(20*daysPassed).toFixed(1)} PP, +MYR ${(100000*daysPassed).toLocaleString()} & +MYR ${divs.toLocaleString()} Dividen!`);
   }
   lastMidnightReset = new Date().toISOString();
   queueSave();
@@ -609,10 +647,11 @@ function start1WeekElectionCountdown() {
 }
 
 function executeDailyMidnightReset() {
+  const divs = calculateTotalDailyDividends();
   state.player.pp += 20.0;
-  state.player.funds += 100000;
+  state.player.funds += 100000 + divs;
   lastMidnightReset = new Date().toISOString();
-  showToast("🌅 RESET HARIAN MIDNIGHT (12:00 AM MYT): +20 Political Power & +MYR 100,000 ditambah!");
+  showToast(`🌅 RESET HARIAN MIDNIGHT: +20 PP, +MYR 100,000 & +MYR ${divs.toLocaleString()} Dividen Saham diterima!`);
   updateUI();
   queueSave();
 }
@@ -685,6 +724,41 @@ function createSdnBhdCompany() {
     updateUI();
     queueSave();
   } else showToast("Diperlukan MYR 25,000 modal penubuhan Sdn Bhd!", true);
+}
+
+function buyCorporateShares(corpId) {
+  const corp = state.corporations.find(c => c.id === corpId);
+  if (!corp) return;
+  const qtyStr = prompt(`Berapa unit saham ${corp.name} mahu dibeli? (Harga: MYR ${corp.price.toFixed(2)}/unit, Dividen: MYR ${corp.dividend || 0.50}/unit/hari):`, "100");
+  const qty = parseInt(qtyStr);
+  if (qty && qty > 0) {
+    const cost = Math.round(qty * corp.price);
+    if (state.player.funds >= cost) {
+      state.player.funds -= cost;
+      corp.owned = (corp.owned || 0) + qty;
+      showToast(`Berjaya membeli ${qty} unit saham ${corp.name}! Dividen harian dijangka: +MYR ${Math.round(corp.owned * corp.dividend)}/hari.`);
+      updateUI();
+      queueSave();
+    } else showToast(`Modal Kas tidak mencukupi (Diperlukan MYR ${cost.toLocaleString()})!`, true);
+  }
+}
+
+function sellCorporateShares(corpId) {
+  const corp = state.corporations.find(c => c.id === corpId);
+  if (!corp || !corp.owned || corp.owned <= 0) {
+    showToast("Anda tiada pegangan saham dalam syarikat ini!", true);
+    return;
+  }
+  const qtyStr = prompt(`Berapa unit saham ${corp.name} mahu dijual? (Pegangan semasa: ${corp.owned} unit, Harga Pasaran: MYR ${corp.price.toFixed(2)}/unit):`, corp.owned.toString());
+  const qty = parseInt(qtyStr);
+  if (qty && qty > 0 && qty <= corp.owned) {
+    const totalCash = Math.round(qty * corp.price);
+    corp.owned -= qty;
+    state.player.funds += totalCash;
+    showToast(`Berjaya menjual ${qty} unit saham ${corp.name}! +MYR ${totalCash.toLocaleString()} diterima.`);
+    updateUI();
+    queueSave();
+  }
 }
 
 function updateCabinetMinister(role, name) {
@@ -774,6 +848,8 @@ function renderStockMarketList() {
     state.corporations.forEach((c, idx) => {
       const card = document.createElement("div");
       card.className = "stock-item-card";
+      const ownedCnt = c.owned || 0;
+      const expectedDiv = Math.round(ownedCnt * (c.dividend || 0.50));
       card.innerHTML = `
         <div class="stock-left">
           <div class="stock-rank">${idx + 1}</div>
@@ -781,14 +857,17 @@ function renderStockMarketList() {
           <div class="stock-info">
             <h4>${c.name}</h4>
             <span class="sector-pill ${c.sectorClass}">${c.sector}</span>
-            <div class="stock-mktcap">MKT CAP <b>${c.mktCap}</b></div>
+            <div class="stock-mktcap">MKT CAP <b>${c.mktCap}</b> • Pegangan: <b style="color:var(--success);">${ownedCnt} Unit</b> (Dividen: +MYR ${expectedDiv}/d)</div>
           </div>
         </div>
         <div class="stock-right">
           <div class="stock-price">MYR ${c.price.toFixed(2)}</div>
           <div class="stock-daily">${c.exchange} ${c.dailyRev}</div>
           <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${c.progress}%"></div></div>
-          <button class="btn-primary" style="margin-top:8px; padding:4px 10px; font-size:11px;" onclick="buyStock('${c.name}', ${c.price})">Beli Saham</button>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="buyCorporateShares(${c.id})">Beli Saham</button>
+            <button class="btn-warning" style="padding:4px 10px; font-size:11px;" onclick="sellCorporateShares(${c.id})">Jual Saham</button>
+          </div>
         </div>
       `;
       container.appendChild(card);
@@ -828,12 +907,14 @@ function promptFoundCorporation() {
       sectorClass: "sector-realestate",
       exchange: "Bursa ACE",
       price: 1.00,
+      dividend: 0.20,
+      owned: 5000,
       mktCap: "MYR 10.0M",
       dailyRev: "+MYR 200K/d",
       logo: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=100&auto=format&fit=crop",
       progress: 50
     });
-    showToast(`🏢 Syarikat Awam '${name}' berjaya disenaraikan di Bursa Malaysia!`);
+    showToast(`🏢 Syarikat Awam '${name}' berjaya disenaraikan di Bursa Malaysia! 5000 unit saham dipegang.`);
     updateUI();
     queueSave();
   } else showToast("Sila pastikan dana mencukupi (MYR 100,000 required)!", true);
@@ -877,12 +958,13 @@ function updateUI() {
     document.getElementById("lblSocialPos").innerText = state.spectrum[state.socialPos - 1];
   }
 
-  if (document.getElementById("portFunds")) {
-    document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
-  }
-  if (document.getElementById("portBtc")) {
-    document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
-  }
+  const portVal = calculateTotalStockPortfolioValue();
+  const dailyDivs = calculateTotalDailyDividends();
+
+  if (document.getElementById("portFunds")) document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
+  if (document.getElementById("portBtc")) document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
+  if (document.getElementById("portStockVal")) document.getElementById("portStockVal").innerText = `MYR ${portVal.toLocaleString()}`;
+  if (document.getElementById("portDailyDiv")) document.getElementById("portDailyDiv").innerText = `+MYR ${dailyDivs.toLocaleString()}/hari`;
 }
 
 function renderMYTokPosts() {
@@ -1339,8 +1421,7 @@ function switchTab(tabId) {
   document.getElementById(tabId).style.display = 'block';
 
   if (tabId === 'tabPortfolio') {
-    if (document.getElementById("portFunds")) document.getElementById("portFunds").innerText = `MYR ${Math.round(state.player.funds).toLocaleString()}`;
-    if (document.getElementById("portBtc")) document.getElementById("portBtc").innerText = `${state.player.btc} BTC`;
+    updateUI();
   }
 }
 EOF
