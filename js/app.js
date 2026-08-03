@@ -1,6 +1,6 @@
 /* ==========================================================================
    POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
-   Game Engine & Application Logic ("A House Divided" Zero-Baseline Election Edition)
+   Game Engine & Application Logic ("A House Divided" Coalitions & Zero-Baseline Edition)
    ========================================================================== */
 
 /* 34+ Million Real Malaysian Population & Registered Voter Breakdown */
@@ -112,15 +112,15 @@ const MALAYSIAN_COMMODITIES = [
   { name: "Gold (999 Physical Gold)", unit: "Gram", price: "MYR 345", daily: "+MYR 6/d", sectorClass: "sector-realestate" }
 ];
 
-/* Real Malaysian Political Parties - ZERO BASELINE SEATS & CAMPAIGN POWER */
+/* Real Malaysian Coalitions & Full Component Parties (PARTI KOMPONEN) */
 const REAL_MALAYSIAN_PARTIES = [
-  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
-  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
-  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
-  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
-  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
-  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
-  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
+  { id: "ph", name: "Pakatan Harapan (PH)", components: "PKR, DAP, AMANAH, UPKO", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
+  { id: "pn", name: "Perikatan Nasional (PN)", components: "PAS, BERSATU, GERAKAN", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
+  { id: "bn", name: "Barisan Nasional (BN)", components: "UMNO, MCA, MIC, PBRS", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
+  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", components: "PBB, SUPP, PRS, PDP", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
+  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", components: "Gagasan Rakyat, PBS, STAR, USNO", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
+  { id: "warisan", name: "Parti Warisan (WARISAN)", components: "Parti Warisan", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
+  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", components: "MUDA", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
 ];
 
 /* 14 Malaysian States/Territories - NO NPC MENTERI BESAR */
@@ -284,7 +284,22 @@ async function routeAfterAuth() {
         state.player.btc = Number(gs.btc);
         state.econPos = gs.econ_position;
         state.socialPos = gs.social_position;
-        if (gs.parties) state.parties = gs.parties;
+
+        if (gs.parties) {
+          gs.parties.forEach(p => {
+            const def = REAL_MALAYSIAN_PARTIES.find(d => d.id === p.id);
+            if (def) {
+              p.components = def.components;
+            }
+            if (!p.campaignPower || p.campaignPower === 0) {
+              p.seats = 0;
+              p.polling = 0.0;
+              p.campaignPower = 0.0;
+            }
+          });
+          state.parties = gs.parties;
+        }
+
         if (gs.states) state.states = gs.states;
         if (gs.lobbies) state.lobbies = gs.lobbies;
         if (gs.bills) state.bills = gs.bills;
@@ -435,6 +450,7 @@ async function initGame(e) {
     state.parties.unshift({
       id: "player_party",
       name: state.player.partyName,
+      components: "Parti Bebas / Reformasi",
       logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg",
       color: "#38bdf8",
       seats: 0,
@@ -1105,6 +1121,7 @@ function renderPartiesAndCandidates() {
       </td>
       <td>
         <span style="font-weight:600; color:${p.color || '#38bdf8'}">${p.name}</span>
+        <div style="font-size:10px; color:var(--gold);">Komponen: <b>${p.components || '-'}</b></div>
         <div style="font-size:10px; color:var(--text-muted);">${p.discord || 'Tiada Link Discord'}</div>
       </td>
       <td style="font-weight:bold; color:var(--gold);">${cpVal}</td>
@@ -1406,6 +1423,11 @@ function uploadLocalPortrait(e) {
       queueSave();
     };
     reader.readAsDataURL(file);
+  }
+}
+
+function updatePortraitUrl(url) {
+  if (urlDataURL(file);
   }
 }
 
