@@ -1,6 +1,6 @@
 /* ==========================================================================
    POWER - Malaysia Geopolitics, Stock Exchange & Real-Time Simulator
-   Game Engine & Application Logic ("A House Divided" Professional Monarchy Edition)
+   Game Engine & Application Logic ("A House Divided" Zero-Baseline Election Edition)
    ========================================================================== */
 
 /* 34+ Million Real Malaysian Population & Registered Voter Breakdown */
@@ -112,15 +112,15 @@ const MALAYSIAN_COMMODITIES = [
   { name: "Gold (999 Physical Gold)", unit: "Gram", price: "MYR 345", daily: "+MYR 6/d", sectorClass: "sector-realestate" }
 ];
 
-/* Real Malaysian Political Parties - NO NPC LEADERS */
+/* Real Malaysian Political Parties - ZERO BASELINE SEATS & CAMPAIGN POWER */
 const REAL_MALAYSIAN_PARTIES = [
-  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 82, polling: 36.8, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
-  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 74, polling: 33.2, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
-  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 30, polling: 18.5, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
-  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 23, polling: 6.2, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
-  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 6, polling: 2.8, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
-  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 3, polling: 1.5, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
-  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 1, polling: 1.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
+  { id: "ph", name: "Pakatan Harapan (PH)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#ef4444", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Social Democracy / Reformist", discord: "https://discord.gg/ph-official" },
+  { id: "pn", name: "Perikatan Nasional (PN)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/External_link_font_awesome.svg", color: "#0284c7", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Islamism / Malay Nationalism", discord: "https://discord.gg/pn-official" },
+  { id: "bn", name: "Barisan Nasional (BN)", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_green_circle.svg", color: "#1e3a8a", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Traditional Conservatism / Ketuanan Melayu", discord: "https://discord.gg/bn-official" },
+  { id: "gps", name: "Gabungan Parti Sarawak (GPS)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#f59e0b", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Borneo Regional Autonomy", discord: "https://discord.gg/gps-official" },
+  { id: "grs", name: "Gabungan Rakyat Sabah (GRS)", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sabah_flag_icon.png", color: "#10b981", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Sabah Regional Nationalism", discord: "https://discord.gg/grs-official" },
+  { id: "warisan", name: "Parti Warisan (WARISAN)", logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg", color: "#a855f7", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Multiracialism / Sabah Unity", discord: "https://discord.gg/warisan-official" },
+  { id: "muda", name: "Ikatan Demokratik Malaysia (MUDA)", logo: "https://upload.wikimedia.org/wikipedia/commons/2/22/Pakatan_Harapan_logo.png", color: "#f43f5e", seats: 0, polling: 0.0, campaignPower: 0.0, leader: "[Kekosongan - Tandingi Sekarang]", ideology: "Youth Politics / Progressive", discord: "https://discord.gg/muda-official" }
 ];
 
 /* 14 Malaysian States/Territories - NO NPC MENTERI BESAR */
@@ -437,8 +437,9 @@ async function initGame(e) {
       name: state.player.partyName,
       logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Blue_flag_icon.svg",
       color: "#38bdf8",
-      seats: 15,
-      polling: 8.5,
+      seats: 0,
+      polling: 0.0,
+      campaignPower: 0.0,
       leader: `${name} (Anda)`,
       ideology: ideology,
       discord: "https://discord.gg/parti-saya"
@@ -480,7 +481,7 @@ async function initGame(e) {
   start1WeekElectionCountdown();
   startLivingStockEngine();
   updateUI();
-  showToast(`Selamat datang ${state.player.name}! Bermula dengan 400 PP & MYR 1,000,000 modal kempen.`);
+  showToast(`Selamat datang ${state.player.name}! Pilihan raya bermula dengan 0 Kerusi & 0% Polling.`);
 }
 
 /* Living Stock Market Price Fluctuation Loop */
@@ -651,10 +652,11 @@ function executeDailyMidnightReset() {
 
 function resetElectionCycle() {
   state.parties.forEach(p => {
-    p.polling = (Math.random() * 25 + 10);
-    p.seats = Math.round(222 * (p.polling / 100));
+    p.polling = 0.0;
+    p.seats = 0;
+    p.campaignPower = 0.0;
   });
-  showToast("🗳 1 WEEKS IRL ELECTION RESET: Parlimen dibubarkan & kerusi dikemaskini secara automatik!");
+  showToast("🗳 PARLIMEN DIBUBARKAN: Semua kerusi (0), polling (0.0%), & kekuatan kempen di-reset ke KOSONG!");
   updateUI();
   queueSave();
 }
@@ -1092,6 +1094,8 @@ function renderPartiesAndCandidates() {
 
   state.parties.forEach((p, idx) => {
     const tr = document.createElement("tr");
+    const cpVal = (p.campaignPower || 0).toFixed(1);
+    tbody.appendChild(tr);
     tr.innerHTML = `
       <td>
         <div style="display:flex; align-items:center; gap:10px;">
@@ -1103,7 +1107,7 @@ function renderPartiesAndCandidates() {
         <span style="font-weight:600; color:${p.color || '#38bdf8'}">${p.name}</span>
         <div style="font-size:10px; color:var(--text-muted);">${p.discord || 'Tiada Link Discord'}</div>
       </td>
-      <td style="font-weight:bold;">${(p.seats * 15.2).toFixed(1)}</td>
+      <td style="font-weight:bold; color:var(--gold);">${cpVal}</td>
       <td>
         <div style="font-weight:bold;">${p.polling.toFixed(1)}%</div>
         <div style="font-size:11px; color:var(--text-muted);">${(p.seats * 35000).toLocaleString()} pengundi</div>
@@ -1114,7 +1118,6 @@ function renderPartiesAndCandidates() {
         <button class="btn-purple" onclick="takeoverParty(${idx})">👑 Ambil Alih Parti</button>
       </td>
     `;
-    tbody.appendChild(tr);
   });
 }
 
@@ -1122,10 +1125,11 @@ function campaignForParty(idx) {
   if (state.player.pp >= 10 && state.player.funds >= 100000) {
     state.player.pp -= 10;
     state.player.funds -= 100000;
-    state.parties[idx].polling = Math.min(100, state.parties[idx].polling + 1.8);
-    state.parties[idx].seats = Math.min(222, state.parties[idx].seats + 3);
+    state.parties[idx].campaignPower = (state.parties[idx].campaignPower || 0) + 15.0;
+    state.parties[idx].polling = Math.min(100, (state.parties[idx].polling || 0) + 2.5);
+    state.parties[idx].seats = Math.round(222 * (state.parties[idx].polling / 100));
 
-    showToast(`Kempen dilancar untuk ${state.parties[idx].name}! Kerusi Dewan Rakyat meningkat.`);
+    showToast(`Kempen dilancar untuk ${state.parties[idx].name}! Kekuatan Kempen & Unjuran Kerusi Dewan Rakyat meningkat.`);
     updateUI();
     queueSave();
   } else {
