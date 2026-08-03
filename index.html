@@ -3,316 +3,751 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POWER - Malaysia Geopolitics, Monarchy & SPR Simulator</title>
+  <title>POWER - Malaysia Geopolitics, Monarchy & Stock Exchange Simulator</title>
+  
+  <!-- External Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- TICKER TAPE -->
+<!-- TOP TICKER TAPE (Bursa Malaysia Stocks & Commodities) -->
 <div class="ticker-tape">
   <div class="ticker-content">
-    <div class="ticker-item"><span>👑 MAJLIS RAJA-RAJA:</span><span style="color:var(--royal-gold-bright)">Persidangan Dwi-Tahunan Berlangsung</span></div>
-    <div class="ticker-item"><span>🏛 SURUHANJAYA PILIHAN RAYA (SPR):</span><span style="color:var(--accent-blue)">Sistem Kitaran PRU/PRN 15-Hari IRL Active</span></div>
-    <div class="ticker-item"><span>PETRONAS Gas:</span><span class="ticker-green">MYR 18.50 (+0.85%)</span></div>
-    <div class="ticker-item"><span>Bursa Malaysia Index:</span><span class="ticker-green">1,624.50 (+4.2 pts)</span></div>
+    <div class="ticker-item"><span>PETRONAS Gas</span><span class="ticker-green">MYR 18.50 +MYR 897K</span></div>
+    <div class="ticker-item"><span>Maybank Berhad</span><span class="ticker-green">MYR 9.80 +MYR 209K</span></div>
+    <div class="ticker-item"><span>Sime Darby</span><span class="ticker-green">MYR 4.30 +MYR 80K</span></div>
+    <div class="ticker-item"><span>Tenaga Nasional</span><span class="ticker-green">MYR 13.20 +MYR 340K</span></div>
+    <div class="ticker-item"><span>Crude Palm Oil (CPO)</span><span class="ticker-green">MYR 3,850/Ton +MYR 120</span></div>
+    <div class="ticker-item"><span>Gamuda Berhad</span><span class="ticker-green">MYR 6.10 +MYR 150K</span></div>
   </div>
 </div>
 
-<!-- AUTH MODAL (SEPERTA MERTA) -->
-<div id="authModal" style="display:flex; position:fixed; inset:0; background:rgba(2,4,8,0.94); z-index:2000; align-items:center; justify-content:center;">
-  <div class="card" style="width: 440px; text-align: center; border-color:var(--royal-gold);">
-    <h2 style="color:var(--royal-gold-bright); margin-bottom: 6px;">👑 Portal Geopolitik Malaysia</h2>
-    <p style="font-size:12px; color:var(--text-muted); margin-bottom: 20px;">Simulasi Parlimen, Monarki, SPR & AI Civilian Voting</p>
-    
-    <form onsubmit="handleAuth(event)">
-      <div class="form-group" style="text-align:left;">
-        <label>Email Akaun Pemain</label>
-        <input type="email" id="authEmail" required placeholder="pemain@politik.my" value="luqman@sim.net">
+<!-- SCREEN 1: GLASSMORPHISM LOGIN / REGISTER MODAL (VISIBLE BY DEFAULT) -->
+<div id="authModal" style="display:flex;">
+  <div class="auth-box">
+    <div class="auth-header">
+      <h2>🌐 Portal Geopolitik Malaysia</h2>
+      <p>Akaun Multiplayer Parlimen, Monarki & DUN Negeri Simulator</p>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <!-- Toggle Tabs -->
+    <div class="auth-tabs">
+      <div class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">🔑 Log Masuk</div>
+      <div class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">📝 Daftar Akaun</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" onsubmit="handleAuth(event)">
+      <div class="form-group">
+        <label>Email Akaun</label>
+        <input type="email" id="authEmail" required placeholder="nama@email.com">
       </div>
-      <div class="form-group" style="text-align:left;">
-        <label>Kata Laluan</label>
-        <input type="password" id="authPass" required placeholder="••••••••" value="password123">
+      <div class="form-group">
+        <label>Kata Laluan (Password)</label>
+        <input type="password" id="authPass" required placeholder="Masukkan Kata Laluan">
       </div>
-      <button type="submit" class="btn-gold" style="width:100%; padding:14px; margin-top:10px; font-size:14px;">⚡ Masuk Ke Alam Geopolitik</button>
+      <button type="submit" class="btn-primary" id="loginBtn" style="width: 100%; margin-top: 10px; padding: 12px;">⚡ Log Masuk Ke Server Game</button>
     </form>
+
+    <!-- REGISTER FORM -->
+    <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label>Nama Pemain / Username</label>
+        <input type="text" id="regUsername" required placeholder="e.g. Wan Luqman">
+      </div>
+      <div class="form-group">
+        <label>Email Baru</label>
+        <input type="email" id="regEmail" required placeholder="nama@email.com">
+      </div>
+      <div class="form-group">
+        <label>Cipta Kata Laluan</label>
+        <input type="password" id="regPass" required minlength="6" placeholder="Minimum 6 aksara">
+      </div>
+      <button type="submit" class="btn-success" id="registerBtn" style="width: 100%; margin-top: 10px; padding: 12px;">✨ Cipta Akaun Baru</button>
+    </form>
+    <p class="auth-info">Data permainan disimpan automatik pada server (Supabase).</p>
   </div>
 </div>
 
-<!-- TOP NAV -->
-<header class="top-nav" id="mainHeader" style="display:none;">
+<!-- TOP NAVBAR -->
+<header class="top-nav" id="mainHeader" style="display: none;">
   <div class="nav-links">
     <span class="nav-item active" onclick="switchTab('tabMonarchy')">👑 Monarki & Istana</span>
-    <span class="nav-item" onclick="switchTab('tabSPR')">🏛 SPR & PRU 15-Hari</span>
-    <span class="nav-item" onclick="switchTab('tabFederal')">🗳 Dewan Rakyat (222)</span>
-    <span class="nav-item" onclick="switchTab('tabStateDUN')">🗺 14 DUN Negeri</span>
-    <span class="nav-item" onclick="switchTab('tabBudget')">💰 Bajet PM-MB & KWSP</span>
-    <span class="nav-item" onclick="switchTab('tabParties')">👥 Gabungan & Parti</span>
-    <span class="nav-item" onclick="switchTab('tabEconomy')">📈 Bursa & Transfer</span>
-    <span class="nav-item" onclick="switchTab('tabProfile')">👤 Profil & Kewangan</span>
-    <span class="nav-item" onclick="switchTab('tabChat')">💬 Public Chat</span>
+    <span class="nav-item" onclick="switchTab('tabEconomy')">Bursa Malaysia</span>
+    <span class="nav-item" onclick="switchTab('tabMyTok')">📱 MYTok Feed</span>
+    <span class="nav-item" onclick="switchTab('tabFederal')">Dewan Rakyat (222)</span>
+    <span class="nav-item" id="navPlayerName" onclick="switchTab('tabProfile')">Pemain</span>
+    <span class="nav-item" onclick="switchTab('tabDemographics')">Demografi Pengundi (34M)</span>
+    <span class="nav-item" onclick="switchTab('tabSdnBhd')">Sdn Bhd</span>
+    <span class="nav-item" onclick="switchTab('tabCabinet')">Kabinet PM</span>
+    <span class="nav-item" onclick="switchTab('tabStateDUN')">Negeri / DUN (14) ▼</span>
+    <span class="nav-item" onclick="switchTab('tabMBRoster')">Menteri Besar Roster</span>
+    <span class="nav-item" onclick="switchTab('tabPortfolio')">Portfolio</span>
+    <span class="nav-item" onclick="switchTab('tabFinancial')">Kewangan</span>
+    <span class="nav-item" onclick="switchTab('tabInstitutions')">SPRM / SPR / PDRM</span>
+    <span class="nav-item" onclick="switchTab('tabMedia')">Media & Artikel</span>
+    <span class="nav-item" onclick="switchTab('tabPublicChat')">Public Chat</span>
+    <span class="nav-item" onclick="switchTab('tabParties')">Parties ▼</span>
+    <span class="nav-item" onclick="switchTab('tabLobbies')">Interest Groups</span>
+    <span class="nav-item" onclick="switchTab('tabActions')">Actions</span>
   </div>
   <div class="nav-links">
+    <span class="save-status" id="saveStatus">Tersimpan</span>
+    <span class="nav-item" onclick="switchTab('tabProfile')">Settings</span>
     <span class="nav-item" onclick="logoutPlayer()">Logout</span>
   </div>
 </header>
 
-<div id="toastBanner" style="position:fixed; top:70px; right:20px; display:none; background:#0f172a; border:1px solid var(--royal-gold); color:#fff; padding:14px 20px; border-radius:10px; z-index:3000; font-size:13px; font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,0.8);"></div>
+<div id="toastBanner">Action executed successfully!</div>
 
-<div class="container" id="mainContainer" style="display:none;">
+<div class="container">
 
-  <!-- TAB 1: ISTANA NEGARA & MONARKI -->
-  <div id="tabMonarchy" class="tab-page">
-    <div class="royal-card">
-      <div class="royal-title">👑 Istana Negara & Majlis Raja-Raja Melayu</div>
-      <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Institusi Diraja memegang kuasa perkenan mutlak dalam pembubaran Parlimen serta pelantikan Perdana Menteri & Menteri Besar.</p>
-      
-      <div class="grid-3" style="margin-top:18px;">
-        <div class="card" style="background:rgba(0,0,0,0.5);">
-          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Sokongan Istana (Royal Favor)</div>
-          <div style="font-size:26px; font-weight:900; color:var(--royal-gold-bright);" id="royalFavorVal">78% Baik</div>
-        </div>
-        <div class="card" style="background:rgba(0,0,0,0.5);">
-          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Status Perkenan Agong</div>
-          <div style="font-size:26px; font-weight:900; color:var(--success);">Sedia Diberi</div>
-        </div>
-        <div class="card" style="background:rgba(0,0,0,0.5);">
-          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Kestabilan Negara</div>
-          <div style="font-size:26px; font-weight:900; color:var(--accent-blue);">Stabil</div>
-        </div>
-      </div>
-
-      <div style="display:flex; gap:12px; margin-top:14px;">
-        <button class="btn-gold" onclick="seekAudience()">🏛 Mengadap YDP Agong (-30 PP Kekal)</button>
-        <button class="btn-blue" onclick="requestDissolution()">📜 Mohon Perkenan Bubar Parlimen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 2: SURUHANJAYA PILIHAN RAYA (SPR) — BADAN BEBAS -->
-  <div id="tabSPR" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">🏛 Suruhanjaya Pilihan Raya (SPR Malaysia) — Independent Body</div>
+  <!-- SCREEN 2: CHARACTER SETUP -->
+  <div id="setupScreen" class="card" style="display: none; max-width: 800px; margin: 30px auto;">
+    <h2 style="color: var(--gold); margin-bottom: 16px; text-align: center;">Cipta Profil Calon & Ambil Alih Parti Politik Malaysia</h2>
+    <form onsubmit="initGame(event)">
       <div class="grid-2">
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3>Kitaran PRU / PRN 15-Hari IRL</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Setiap 15 hari IRL, SPR akan melancarkan PRU/PRN rasmi secara automatik.</p>
-          <div style="font-size:20px; font-weight:800; color:var(--royal-gold-bright); margin-top:10px;" id="sprCountdown">14 Hari 23 Jam Baki</div>
+        <div class="form-group">
+          <label>Nama Calon Politikus</label>
+          <input type="text" id="charName" required>
         </div>
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3>Pilihan Raya Real-Time 10 Jam</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Mengundi dikira secara berperingkat oleh **AI Civilian Voters** setiap jam selama 10 jam. Pemain TIDAK mengundi diri sendiri!</p>
-          <button class="btn-purple" style="width:100%; margin-top:10px;" onclick="triggerSPR10HourPolling()">🗳 Lancar Tempoh Polling 10-Jam SPR</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 3: DEWAN RAKYAT (222 KERUSI) -->
-  <div id="tabFederal" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">🏛 Dewan Rakyat Malaysia (222 Kerusi Parlimen)</div>
-      <table>
-        <thead>
-          <tr><th>Gabungan / Parti</th><th>Kerusi Unjuran</th><th>Polling %</th><th>AI Civilian Votes</th><th>Tindakan Kempen</th></tr>
-        </thead>
-        <tbody id="federalTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB 4: 14 DUN NEGERI & PERATURAN 1 POLITIKUS = MAX 2 KERUSI -->
-  <div id="tabStateDUN" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">🗺 Pilihan Raya Negeri (DUN) & Pendaftaran Kerusi (1 Parti 1 Calon Sekawasan / Max 2 Kerusi Sepemain)</div>
-      <div class="grid-2">
-        <div>
-          <label>Pilih Negeri Semakan:</label>
-          <select id="stateSelect" onchange="loadStateDUN(this.value)">
-            <option value="Selangor">Selangor (56 Kerusi)</option>
-            <option value="Johor">Johor (56 Kerusi)</option>
-            <option value="Sabah">Sabah (73 Kerusi)</option>
-            <option value="Sarawak">Sarawak (82 Kerusi)</option>
-            <option value="Perak">Perak (59 Kerusi)</option>
-            <option value="Pulau Pinang">Pulau Pinang (40 Kerusi)</option>
+        <div class="form-group">
+          <label>Negeri Tapak Politik (Base State)</label>
+          <select id="startNation">
+            <option value="Johor">Johor (DUN 56 Kerusi)</option>
+            <option value="Kedah">Kedah (DUN 36 Kerusi)</option>
+            <option value="Kelantan">Kelantan (DUN 45 Kerusi)</option>
+            <option value="Melaka">Melaka (DUN 28 Kerusi)</option>
+            <option value="Negeri Sembilan">Negeri Sembilan (DUN 36 Kerusi)</option>
+            <option value="Pahang">Pahang (DUN 42 Kerusi)</option>
+            <option value="Perak">Perak (DUN 59 Kerusi)</option>
+            <option value="Perlis">Perlis (DUN 15 Kerusi)</option>
+            <option value="Pulau Pinang">Pulau Pinang (DUN 40 Kerusi)</option>
+            <option value="Sabah">Sabah (DUN 73 Kerusi)</option>
+            <option value="Sarawak">Sarawak (DUN 82 Kerusi)</option>
+            <option value="Selangor" selected>Selangor (DUN 56 Kerusi)</option>
+            <option value="Terengganu">Terengganu (DUN 32 Kerusi)</option>
+            <option value="Wilayah Persekutuan">Wilayah Persekutuan (Ditadbir Persekutuan)</option>
           </select>
-          <div style="margin-top:14px; background:rgba(0,0,0,0.4); padding:14px; border-radius:8px; border:1px solid var(--border);" id="stateDetailBox">
-            <h3 style="color:var(--royal-gold-bright)" id="stateNameDisplay">Selangor</h3>
-            <p style="font-size:12px; color:var(--text-muted); margin-top:6px;" id="stateInfoDisplay">Majoriti: 29 Kerusi • MB: [Belum Dilantik]</p>
-          </div>
-        </div>
-        <div>
-          <button class="btn-success" style="width:100%; margin-bottom:10px;" onclick="registerContestSeats()">📝 Daftar Tanding (1 DUN + 1 Parlimen)</button>
-          <button class="btn-gold" style="width:100%;" onclick="campaignDUN()">📢 Kempen DUN Negeri (-15 PP / -MYR 50k Campaign Fund)</button>
         </div>
       </div>
-    </div>
+
+      <div class="grid-2" style="margin-top: 10px;">
+        <div class="form-group">
+          <label>Pilih Parti / Gabungan Politik Malaysia Sebenar</label>
+          <select id="partySelect" onchange="document.getElementById('partyNameCustomGroup').style.display = (this.value==='custom') ? 'block' : 'none';">
+            <option value="ph">Pakatan Harapan (PH)</option>
+            <option value="pn">Perikatan Nasional (PN)</option>
+            <option value="bn">Barisan Nasional (BN)</option>
+            <option value="gps">Gabungan Parti Sarawak (GPS)</option>
+            <option value="grs">Gabungan Rakyat Sabah (GRS)</option>
+            <option value="warisan">Parti Warisan (WARISAN)</option>
+            <option value="muda">Ikatan Demokratik Malaysia (MUDA)</option>
+            <option value="custom">+ Cipta Parti Politik Baharu Sendiri</option>
+          </select>
+        </div>
+        <div class="form-group" id="partyNameCustomGroup" style="display:none;">
+          <label>Nama Parti Baharu Anda</label>
+          <input type="text" id="partyNameCustom" value="Gabungan Reformasi Rakyat">
+        </div>
+        <div class="form-group">
+          <label>Fokus Ideologi Utama</label>
+          <select id="partyIdeology">
+            <option value="Islamism / Islamic Democracy">Islamism / Islamic Democracy (Islamisme & Syariah)</option>
+            <option value="Malay Nationalism / Ketuanan">Malay Nationalism (Ketuanan Melayu & Hak Bumiputera)</option>
+            <option value="Borneo Regional Autonomy">Borneo Regional Autonomy (Ketuanan Wilayah Sabah/Sarawak)</option>
+            <option value="Social Democracy">Social Democracy (Reformasi & Kebajikan Rakyat)</option>
+            <option value="Conservatism">Conservatism (Pembangunan Perniagaan & Kestabilan)</option>
+            <option value="Liberalism">Liberalism (Pasaran Bebas & Hak Awam)</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-gold" id="startGameBtn" style="width: 100%; padding: 14px; margin-top: 15px; font-size: 14px;">🚀 Mula Kempen & Masuk Parlimen</button>
+    </form>
   </div>
 
-  <!-- TAB 5: BAJET PERSEKUTUAN PM, PERMOHONAN MB, KWSP, ATM & PDRM -->
-  <div id="tabBudget" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">💰 Pengurusan Bajet Persekutuan, Permohonan MB, KWSP, Tentera & Polis</div>
-      
-      <div class="grid-2" style="margin-bottom:20px;">
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--royal-gold-bright)">Permohonan Bajet Pembangunan Negeri (MB ke PM)</h3>
-          <div class="form-group" style="margin-top:10px;">
-            <label>Jumlah Bajet Dipohon (MYR):</label>
-            <input type="number" id="mbBudgetReqAmount" value="5000000">
-          </div>
-          <button class="btn-gold" style="width:100%;" onclick="requestMBBudgetFromPM()">📩 Hantar Permohonan Bajet Negeri ke PM</button>
-        </div>
+  <!-- SCREEN 3: MAIN DASHBOARD -->
+  <div id="dashboardScreen" style="display: none;">
 
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--success)">Kelulusan Perdana Menteri (PM Action)</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">PM mempunyai kuasa penuh untuk Meluluskan atau Menolak permohonan bajet MB.</p>
-          <div style="display:flex; gap:10px; margin-top:14px;">
-            <button class="btn-success" style="flex:1;" onclick="pmApproveBudget()">✅ Luluskan Bajet</button>
-            <button class="btn-primary" style="flex:1;" onclick="pmRejectBudget()">❌ Tolak Bajet</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-3">
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--accent-blue)">KWSP & Kebajikan Rakyat</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Pengurusan krisis dividen & pengeluaran khas KWSP.</p>
-          <button class="btn-blue" style="width:100%; margin-top:10px;" onclick="manageKWSP()">📊 Luluskan Dividen KWSP</button>
-        </div>
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--accent-red)">Angkatan Tentera Malaysia (ATM)</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Bajet pertahanan persekutuan & keselamatan sempadan.</p>
-          <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="manageATM()">🪖 Agih Bajet Pertahanan ATM</button>
-        </div>
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--success)">Polis Diraja Malaysia (PDRM)</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Kawalan ketenteraman awam & pencegahan jenayah.</p>
-          <button class="btn-success" style="width:100%; margin-top:10px;" onclick="managePDRM()">👮 Agih Bajet Ketenteraman PDRM</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 6: GABUNGAN BESAR & PARTI KOMPONEN (DUA PERINGKAT JAWATAN) -->
-  <div id="tabParties" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">👥 Gabungan Besar & Parti Komponen (Dua Peringkat Hirarki Jawatan)</div>
-      
-      <h3>1. Gabungan Besar (Coalition Level)</h3>
-      <table>
-        <thead>
-          <tr><th>Gabungan Besar</th><th>Pengerusi Gabungan</th><th>Parti Komponen</th><th>Kerusi Parlimen</th><th>Discord Link</th></tr>
-        </thead>
-        <tbody id="coalitionTableBody"></tbody>
-      </table>
-
-      <h3 style="margin-top:20px;">2. Parti Komponen (Component Party Level)</h3>
-      <table>
-        <thead>
-          <tr><th>Parti Komponen</th><th>Gabungan</th><th>Presiden</th><th>Timbalan</th><th>Ketua Pemuda</th><th>Discord Link</th></tr>
-        </thead>
-        <tbody id="partyHirarchyTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB 7: BURSA MALAYSIA, SDN BHD & TRANSFER FUNDS -->
-  <div id="tabEconomy" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">📈 Bursa Malaysia, Syarikat Sdn Bhd & Pemindahan Dana (Transfer System)</div>
-      
-      <div class="grid-2" style="margin-bottom:20px;">
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3>💸 Pemindahan Campaign Fund Kepada Pemain / Parti</h3>
-          <div class="form-group" style="margin-top:10px;">
-            <label>Penerima Dana (Pemain / Parti):</label>
-            <input type="text" id="transferTargetInput" placeholder="e.g. Wan Luqman / Pakatan Harapan">
-          </div>
-          <div class="form-group">
-            <label>Jumlah Transfer Campaign Fund (MYR):</label>
-            <input type="number" id="transferAmountInput" value="100000">
-          </div>
-          <button class="btn-success" style="width:100%;" onclick="transferCampaignFunds()">💸 Hantar Dana Kempen (-MYR)</button>
-        </div>
-
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3>🏢 Penubuhan Syarikat Sdn Bhd Persendirian</h3>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Bina perniagaan persendirian menggunakan Capital Fund untuk hasil dividen harian.</p>
-          <button class="btn-gold" style="width:100%; margin-top:14px;" onclick="createSdnBhd()">+ Tubuh Syarikat Sdn Bhd (-MYR 50k Capital)</button>
-        </div>
-      </div>
-
-      <h3>Pasaran Saham Bursa Malaysia</h3>
-      <table>
-        <thead>
-          <tr><th>Syarikat Korporat</th><th>Harga Seunit</th><th>Pegangan Anda</th><th>Dividen Harian</th><th>Tindakan</th></tr>
-        </thead>
-        <tbody id="stockTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB 8: PROFIL, JAWATAN, HOMEBASE & PORTFOLIO KEWANGAN -->
-  <div id="tabProfile" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">👤 Profil Politikus, Homebase & Penyata Kewangan Portfolio</div>
-      <div class="grid-2">
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--royal-gold-bright)">Maklumat Jawatan & Homebase</h3>
-          <div style="font-size:13px; line-height:1.9; margin-top:10px;">
-            <div>• Nama Politikus: <b id="profName">Wan Luqman</b></div>
-            <div>• Jawatan Utama: <b id="profRole" style="color:var(--accent-blue)">Ahli Parlimen / Perdana Menteri</b></div>
-            <div>• Homebase Negeri: <b id="profHomebase">Selangor (+10 PP Bonus Elaun/Jam)</b></div>
-            <div>• Kerusi Ditandingi: <b id="profSeats">DUN N.19 Seri Setia / Parlimen P.100 Pandan</b></div>
-            <div>• Bonus PP Jawatan: <b style="color:var(--accent-red)">+15 PP/Jam (Perdana Menteri)</b></div>
+    <!-- TAB 1: MONARKI & ISTANA NEGARA -->
+    <div id="tabMonarchy" class="tab-page">
+      <div class="card royal-card">
+        <div class="market-header">
+          <div>
+            <span class="royal-badge">👑 Institusi Diraja Malaysia</span>
+            <h2 style="font-size: 24px; color: var(--gold); margin-top:6px;">Istana Negara & Majlis Raja-Raja Melayu</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Perkenan Diraja (Royal Assent) RUU, Menghadap YDPA, dan Pengurniaan Darjah Kebesaran</p>
           </div>
         </div>
 
-        <div class="card" style="background:rgba(0,0,0,0.4);">
-          <h3 style="color:var(--success)">Penyata Portfolio Kewangan (Capital vs Campaign)</h3>
-          <div style="font-size:13px; line-height:1.9; margin-top:10px;">
-            <div>• Capital Fund (Modal Peribadi): <b id="profCapital" style="color:var(--success)">MYR 1,000,000</b></div>
-            <div>• Campaign Fund (Dana Kempen): <b id="profCampaign" style="color:var(--accent-blue)">MYR 1,000,000</b></div>
-            <div>• Political Power (PP): <b id="profPP" style="color:var(--accent-red)">300.0 PP</b></div>
-            <div>• Nilai Portfolio Saham: <b id="profStockVal" style="color:var(--royal-gold-bright)">MYR 18,500</b></div>
-            <div>• Hasil Dividen Harian: <b style="color:var(--success)" id="profDivVal">+MYR 1,200/Hari</b></div>
+        <div class="stats-grid-3" style="margin-bottom:18px;">
+          <div class="stat-box"><div class="stat-label">Status Perkenan RUU</div><div class="stat-value" style="color:var(--gold);" id="monarchyAssentCnt">12 RUU</div></div>
+          <div class="stat-box"><div class="stat-label">Menghadap YDPA</div><div class="stat-value" style="color:var(--success);" id="monarchyAudienceCnt">3 Kali</div></div>
+          <div class="stat-box"><div class="stat-label">Legitimasi Diraja</div><div class="stat-value" style="color:var(--accent-blue);">Sangat Diperkenan</div></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card" style="background:rgba(7, 11, 22, 0.6);">
+            <h3 style="color:var(--gold);">📜 Perkenan Diraja RUU Parlimen</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Mohon perkenan Seri Paduka Baginda Yang di-Pertuan Agong untuk meluluskan Undang-Undang / Akta Parlimen.</p>
+            <button class="btn-gold" style="width:100%;" onclick="requestRoyalAssent()">📜 Mohon Perkenan Diraja (10 PP)</button>
+          </div>
+
+          <div class="card" style="background:rgba(7, 11, 22, 0.6);">
+            <h3 style="color:var(--gold);">🏛 Menghadap YDPA & Majlis Raja-Raja</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Menghadap Seri Paduka Baginda bagi memohon pembubaran Parlimen atau kelulusan pelantikan Kabinet.</p>
+            <button class="btn-gold" style="width:100%;" onclick="seekRoyalAudience()">👑 Menghadap YDPA di Istana Negara (15 PP)</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- TAB 9: PUBLIC CHAT -->
-  <div id="tabChat" class="tab-page" style="display:none;">
-    <div class="card">
-      <div class="card-title">💬 Public Chat Room & Pengumuman Rasmi SPR</div>
-      <div class="chat-box" id="publicChatBox">
-        <div class="chat-item"><b>[Pengumuman SPR]:</b> Tempoh PRU 15-Hari IRL diaktifkan. Calon boleh mendaftar 1 DUN + 1 Parlimen.</div>
-      </div>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <input type="text" id="chatInput" placeholder="Tulis mesej perbincangan politik...">
-        <button class="btn-gold" onclick="sendChatMessage()">Hantar Mesej</button>
+    <!-- TAB 2: MYTOK VIRAL SOCIAL MEDIA FEED -->
+    <div id="tabMyTok" class="tab-page" style="display:none;">
+      <div class="card">
+        <div class="market-header">
+          <div>
+            <h2 style="font-size: 22px; color: #fff;">📱 MYTok - Media Sosial Viral Politik</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Muat naik video pendek & kenyataan tular untuk menarik sokongan pengundi belia & Undi18</p>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:18px;">
+          <div>
+            <div class="form-group">
+              <label>Tajuk Video / Kenyataan Tular MYTok</label>
+              <input type="text" id="myTokTitleInput" placeholder="e.g. Pembentangan Manifesto Anak Muda 2026 #Undi18">
+            </div>
+            <div class="form-group">
+              <label>Hashtag / Kategori Video</label>
+              <input type="text" id="myTokTagInput" value="#MYTok #PolitikMY #Reformasi">
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="postMYTokVideo()">✨ Muat Naik Video MYTok (+20 PP & +MYR 15,000)</button>
+          </div>
+          <div>
+            <h3>Video MYTok Tular Semasa</h3>
+            <div id="myTokContainer">
+              <!-- Populated Dynamically -->
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- TAB 3: STOCK MARKET & BURSA MALAYSIA -->
+    <div id="tabEconomy" class="tab-page" style="display:none;">
+      <div class="card">
+        <div class="market-header">
+          <div>
+            <h2 style="font-size: 22px; color: #fff;">Bursa Malaysia Stock Market</h2>
+            <p style="font-size: 12px; color: var(--text-muted);">Semua syarikat korporat terbitan awam & komoditi Malaysia</p>
+          </div>
+          <button class="btn-primary" onclick="promptFoundCorporation()">+ Found Corporation (MYR 100k)</button>
+        </div>
+
+        <div class="stats-grid-3">
+          <div class="stat-box">
+            <div class="stat-label">Terlibat (Listed)</div>
+            <div class="stat-value">12 Syarikat</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Jumlah Market Cap</div>
+            <div class="stat-value" style="color:var(--success);">MYR 236.4M</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Hasil Harian Pasaran</div>
+            <div class="stat-value" style="color:var(--accent-red);">MYR 7.9M/d</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div class="sub-tabs">
+            <div class="sub-tab-btn active" id="btnSubListings" onclick="switchStockSubTab('listings')">Listings (6)</div>
+            <div class="sub-tab-btn" id="btnSubCommodities" onclick="switchStockSubTab('commodities')">Commodities (5)</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">SUSUN:</span>
+            <select style="width: 140px; padding: 4px 8px; font-size: 11px;">
+              <option>Market Cap ▼</option>
+              <option>Share Price</option>
+              <option>Income</option>
+              <option>Revenue</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Corporate Stock Cards List -->
+        <div id="stockListContainer">
+          <!-- Populated Dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: DEMOGRAFI PENGUNDI (34M POPULASI) -->
+    <div id="tabDemographics" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">👥 Demografi Pengundi & Populasi 34.1 Juta Rakyat Malaysia</div>
+        <div class="stats-grid-3" style="margin-bottom:18px;">
+          <div class="stat-box"><div class="stat-label">Jumlah Populasi</div><div class="stat-value" style="color:var(--accent-blue);">34,100,000</div></div>
+          <div class="stat-box"><div class="stat-label">Pengundi Berdaftar (SPR)</div><div class="stat-value" style="color:var(--success);">21,180,000</div></div>
+          <div class="stat-box"><div class="stat-label">Peratusan Keluar Undi</div><div class="stat-value" style="color:var(--warning);">78.4%</div></div>
+        </div>
+
+        <h3>Kelompok & Komuniti Pengundi Utama</h3>
+        <div class="grid-2" style="margin-top:12px;">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--accent-red);">Pengundi Belia (Undi18 / Gen-Z)</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">32% daripada total pengundi • Cenderung kepada Reformasi & Media Sosial</p>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--warning);">Pengundi Luar Bandar & Felda</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">28% daripada total pengundi • Cenderung kepada Islamisme & Ketuanan</p>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--accent-blue);">Pengundi Bandar & Suburb</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">25% daripada total pengundi • Cenderung kepada Ekonomi Progresif</p>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h4 style="color:var(--success);">Komuniti Perniagaan & Industri</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">15% daripada total pengundi • Cenderung kepada Kestabilan Pasaran</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: SENDIRIAN BERHAD (SDN BHD) PRIVATE COMPANIES -->
+    <div id="tabSdnBhd" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="market-header">
+          <div>
+            <h2 style="font-size:22px; color:#fff;">Syarikat Sendirian Berhad (Sdn Bhd)</h2>
+            <p style="font-size:12px; color:var(--text-muted);">Syarikat perniagaan persendirian pemain untuk dividends & modal kempen</p>
+          </div>
+          <button class="btn-green" onclick="createSdnBhdCompany()">+ Tubuh Syarikat Sdn Bhd (MYR 25k)</button>
+        </div>
+
+        <div id="sdnBhdContainer">
+          <!-- Populated Dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: PERINGKAT PERSEKUTUAN / DEWAN RAKYAT -->
+    <div id="tabFederal" class="tab-page" style="display: none;">
+      <div class="map-banner">
+        <h2 style="font-size: 24px; color: #fff;">🇲🇾 Peringkat Persekutuan: Dewan Rakyat (2020 Era)</h2>
+        <div class="election-badge">🗳 Kitaran PRU 1 Minggu IRL (Masa Tinggal: <span id="weekElectionTimer" style="color:#f8fafc;">6 Hari 23 Jam</span>)</div>
+        <div style="margin-top:10px;">
+          <button class="btn-purple" onclick="resetElectionCycle()">🗳 Mula Semula / Bubar Parlimen (Reset Election Cycle)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom: 14px; font-size: 13px; color: var(--text-muted);">
+          Status Kerajaan Persekutuan: <b style="color:var(--success);" id="pmStatus">-</b>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Presiden / Pemimpin</th>
+              <th>Parti / Gabungan Sebenar</th>
+              <th>Kekuatan Kempen</th>
+              <th>Polling %</th>
+              <th>Unjuran Kerusi Dewan Rakyat</th>
+              <th>Tindakan Kempen</th>
+            </tr>
+          </thead>
+          <tbody id="candidateTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 7: KABINET PERSEKUTUAN -->
+    <div id="tabCabinet" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">🇲🇾 Jemaah Menteri & Pelantikan Kabinet Persekutuan</div>
+        <p style="font-size: 12px; color: var(--text-muted); text-align: center; margin-bottom: 16px;">Sebagai Perdana Menteri / Pemimpin Parti, anda boleh melantik Ahli Kabinet daripada kalangan pemain:</p>
+        <div class="grid-3" id="cabinetListContainer">
+          <!-- Populated Dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 8: PERINGKAT NEGERI / DUN (ALL 14) -->
+    <div id="tabStateDUN" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">🇲🇾 Peringkat Negeri: Dewan Undangan Negeri (DUN) — 14 Negeri/Wilayah</div>
+        <div style="margin-bottom: 16px;">
+          <label>Pilih Negeri Untuk Semakan DUN & Kerajaan Negeri:</label>
+          <select id="stateSelect" onchange="loadStateDUN(this.value)"></select>
+        </div>
+
+        <div class="grid-2">
+          <div class="card" style="background: rgba(10, 15, 29, 0.5);">
+            <h3 style="color:var(--accent-red);" id="stateTitle">-</h3>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;" id="statePopInfo">Populasi: 7.2M | Pengundi: 3.8M</div>
+            <div style="font-size:13px; margin: 12px 0; line-height: 1.8;">
+              <div>• Jumlah Kerusi DUN: <b id="stateTotalSeats">-</b></div>
+              <div>• Majoriti Diperlukan: <b id="stateMajority">-</b></div>
+              <div>• Jawatan Menteri Besar / KM / Premier: <b id="stateMB" style="color:var(--success);">-</b></div>
+              <div>• Gabungan Pemerintah: <b id="stateGov">-</b></div>
+            </div>
+            <button class="btn-green" style="width:100%; margin-top:8px;" onclick="campaignStateDUN()">📢 Kempen Pilihan Raya DUN (10 PP / MYR 50,000)</button>
+            <button class="btn-purple" style="width:100%; margin-top:6px;" onclick="triggerPRNElection()">🗳 Lancar Pilihan Raya Negeri (PRN)</button>
+          </div>
+
+          <div>
+            <h3>Senarai Kawasan DUN Negeri (Contoh)</h3>
+            <table>
+              <thead>
+                <tr><th>DUN</th><th>Ahli Dewan Undangan Negeri (ADUN)</th><th>Status</th></tr>
+              </thead>
+              <tbody id="dunSeatTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 9: PARTIES, DISCORD LINKS & IDEOLOGY SWAP -->
+    <div id="tabParties" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Politik Dalaman Parti, Discord AGM & Penukaran Ideologi</div>
+        
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Beralih Parti Politik</h3>
+            <div class="form-group">
+              <label>Pilih Parti Utama Anda:</label>
+              <select onchange="changePlayerParty(this.value)">
+                <option value="ph">Pakatan Harapan (PH)</option>
+                <option value="pn">Perikatan Nasional (PN)</option>
+                <option value="bn">Barisan Nasional (BN)</option>
+                <option value="gps">Gabungan Parti Sarawak (GPS)</option>
+                <option value="grs">Gabungan Rakyat Sabah (GRS)</option>
+                <option value="warisan">Parti Warisan (WARISAN)</option>
+                <option value="muda">Ikatan Demokratik Malaysia (MUDA)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Tukar Ideologi Calon</h3>
+            <div class="form-group">
+              <label>Ideologi Utama:</label>
+              <select onchange="updatePlayerIdeologyInParties(this.value)">
+                <option value="Islamism / Islamic Democracy">Islamism / Islamic Democracy</option>
+                <option value="Malay Nationalism / Ketuanan">Malay Nationalism / Ketuanan Melayu</option>
+                <option value="Social Democracy">Social Democracy / Reformist</option>
+                <option value="Conservatism">Conservatism / Kestabilan</option>
+                <option value="Liberalism">Free Market Liberalism</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h3>Senarai Parti Politik & Pautan Discord / AGM</h3>
+        <table>
+          <thead>
+            <tr><th>Parti</th><th>Pemimpin</th><th>Ideologi</th><th>Pautan Discord / AGM</th><th>Tindakan</th></tr>
+          </thead>
+          <tbody id="partyRosterBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 10: MENTERI BESAR ROSTER (14 NEGERI/WILAYAH) -->
+    <div id="tabMBRoster" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Senarai Menteri Besar & Ketua Menteri Kesemua 14 Negeri/Wilayah</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Negeri</th>
+              <th>Menteri Besar / Ketua Menteri / Premier</th>
+              <th>Gabungan Pemerintah Negeri</th>
+              <th>Kerusi DUN</th>
+              <th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="mbRosterTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 11: TAB PORTFOLIO -->
+    <div id="tabPortfolio" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">💼 Portfolio Politikus & Aset Korporat</div>
+        <div class="grid-2">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Jawatan & Portfolio Kerajaan</h3>
+            <div style="font-size:13px; margin-top:10px; line-height:1.8;">
+              <div>• Jawatan Semasa: <b style="color:var(--accent-red);">Perdana Menteri / Presiden Parti</b></div>
+              <div>• Tapak Kawasan: <b>Selangor / Malaysia</b></div>
+              <div>• Reputasi Politik: <b style="color:var(--success);">75.0% Tinggi</b></div>
+              <div>• Nilai Portfolio Saham: <b style="color:var(--accent-blue);" id="portStockVal">MYR 0</b></div>
+              <div>• Dividen Harian Dijangka: <b style="color:var(--success);" id="portDailyDiv">+MYR 0/hari</b></div>
+            </div>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3>Pegangan Aset & Pelaburan</h3>
+            <div style="font-size:13px; margin-top:10px; line-height:1.8;">
+              <div>• Liquid Capital (Kas): <b style="color:var(--success);" id="portFunds">MYR 1,000,000</b></div>
+              <div>• Pegangan Bitcoin (BTC): <b style="color:var(--warning);" id="portBtc">0 BTC</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 12: TAB KEWANGAN (FINANCIAL DASHBOARD) -->
+    <div id="tabFinancial" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">📈 Penyata Kewangan Persekutuan & Modal Kempen</div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div class="stat-box"><div class="stat-label">Rizab Persekutuan</div><div class="stat-value" style="color:var(--success);">MYR 150B</div></div>
+          <div class="stat-box"><div class="stat-label">Hasil Cukai Pendapatan</div><div class="stat-value" style="color:var(--accent-blue);">MYR 35B/thn</div></div>
+          <div class="stat-box"><div class="stat-label">Hasil Cukai Korporat</div><div class="stat-value" style="color:var(--purple);">MYR 28B/thn</div></div>
+          <div class="stat-box"><div class="stat-label">Perbelanjaan Pembangunan</div><div class="stat-value" style="color:var(--warning);">MYR 45B/thn</div></div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <h3>Penukaran Liquid Capital Kepada Dana Kempen</h3>
+            <div class="form-group">
+              <label>Jumlah Penukaran (MYR):</label>
+              <input type="number" id="convertAmount" value="50000">
+            </div>
+            <button class="btn-green" style="width:100%;" onclick="convertCapital()">Tukar Dana (+Reputasi Politik)</button>
+          </div>
+          <div>
+            <h3>Lobi Dana Korporat</h3>
+            <button class="btn-primary" style="width:100%; margin-top:20px; padding:12px;" onclick="runCorporateLobbying()">💼 Minta Lobi Dana Korporat (+MYR 100,000)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 13: INSTITUSI KHAS: SPRM, SPR & PDRM -->
+    <div id="tabInstitutions" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">⚖️ Suruhanjaya Pilihan Raya (SPR), SPRM & PDRM</div>
+        <div class="grid-3">
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3 style="color:var(--accent-blue);">Suruhanjaya Pilihan Raya (SPR)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Mengawal selia pilihan raya persekutuan & PRN negeri.</p>
+            <button class="btn-purple" style="width:100%;" onclick="resetElectionCycle()">🗳 Pembubaran Parlimen & Semakan Kerusi</button>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3 style="color:var(--danger);">SPRM (Anti-Rasuah)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Siasatan integriti & audit pengisytiharan harta.</p>
+            <button class="btn-danger" style="width:100%;" onclick="triggerSPRMInvestigation()">🔍 Lancar Audit Integriti SPRM</button>
+          </div>
+          <div class="card" style="background:rgba(10,15,29,0.5);">
+            <h3 style="color:var(--success);">Polis Diraja Malaysia (PDRM)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:8px 0;">Ketenteraman awam & keselamatan negara.</p>
+            <button class="btn-primary" style="width:100%;" onclick="triggerPDRMSecurity()">👮 Kawalan Ketenteraman Awam PDRM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 14: MEDIA & ARTIKEL POLITIK -->
+    <div id="tabMedia" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">📰 Portal Media & Penulisan Artikel Politik</div>
+        <div class="grid-2">
+          <div>
+            <h3>Tulis & Terbit Artikel Baharu</h3>
+            <div class="form-group">
+              <label>Tajuk Artikel / Pengumuman Press Release</label>
+              <input type="text" id="articleTitleInput" placeholder="e.g. Pelan Induk Ekonomi Digital Selangor 2026">
+            </div>
+            <div class="form-group">
+              <label>Kandungan Artikel Politik</label>
+              <textarea id="articleContentInput" rows="4" placeholder="Tuliskan kenyataan akhbar atau pendirian politik anda di sini..."></textarea>
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="publishArticle()">✨ Terbit Artikel Ke Portal Berita (+Reputasi & PP)</button>
+          </div>
+          <div>
+            <h3>Artikel Diterbitkan</h3>
+            <div id="articlesListContainer">
+              <!-- Populated Dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 15: PUBLIC CHAT -->
+    <div id="tabPublicChat" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">💬 Live Public Chat Room Pemain</div>
+        <div class="game-log" id="publicChatBox" style="height: 250px;">
+          <!-- Populated Dynamically -->
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <input type="text" id="chatInput" placeholder="Tulis mesej kepada semua pemain dalam server...">
+          <button class="btn-primary" onclick="sendChatMessage()">Hantar Mesej</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 16: INTEREST GROUPS & LOBBIES -->
+    <div id="tabLobbies" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Konsortium & Kumpulan Kepentingan Industri Malaysia</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Kumpulan Industri</th>
+              <th>Wakil Konsortium</th>
+              <th>Kekuatan Negeri</th>
+              <th>Kekuatan Nasional</th>
+              <th>Hubungan Anda</th>
+              <th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="lobbyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 17: DEWAN RAKYAT LEGISLATION -->
+    <div id="tabSenate" class="tab-page" style="display: none;">
+      <div style="text-align: center; margin-bottom: 15px;">
+        <h2 style="font-size: 22px; margin-bottom: 8px;">Dewan Rakyat Legislative Chamber</h2>
+        <img src="https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&auto=format&fit=crop" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Kod RUU</th>
+              <th>Ringkasan Dasar / Akta</th>
+              <th>Setuju</th>
+              <th>Bantah</th>
+              <th>Berkecuali</th>
+              <th>Penggubal</th>
+              <th>Masa Mengundi</th>
+              <th>Undi</th>
+            </tr>
+          </thead>
+          <tbody id="billsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 18: PROFILE & PORTRAIT UPLOAD -->
+    <div id="tabProfile" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title" id="profileTitle">-</div>
+        <div class="profile-grid">
+          <div class="portrait-upload-box">
+            <img id="portraitPreview" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop" class="profile-photo-preview" alt="Foto Calon">
+            <label>Muat Naik Foto Calon Anda:</label>
+            <input type="file" id="portraitFileInput" accept="image/*" onchange="uploadLocalPortrait(event)" style="margin-top: 6px; font-size: 11px;">
+            <div style="margin: 8px 0; font-size: 11px; color: var(--text-muted);">- ATAU Tampal URL Gambar -</div>
+            <input type="text" id="portraitUrlInput" placeholder="https://..." onchange="updatePortraitUrl(this.value)" style="font-size: 11px;">
+          </div>
+
+          <div>
+            <div class="form-group">
+              <label>Nama Calon Politikus:</label>
+              <input type="text" id="inputCharName" onchange="updateCharName(this.value)">
+            </div>
+            <div class="form-group">
+              <label>Biografi & Visi Politik:</label>
+              <textarea id="inputCharBio" rows="3">Memacu reformasi ekonomi, kebajikan rakyat dan perpaduan nasional.</textarea>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Tapak Kawasan:</label>
+                <input type="text" id="inputLocation" readonly>
+              </div>
+              <div class="form-group">
+                <label>Penyokong Industri:</label>
+                <input type="text" readonly value="PETRONAS, Persatuan Sawit, Konsortium Perbankan">
+              </div>
+            </div>
+            <button class="btn-green" onclick="saveProfile()">Simpan Profil Calon</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 19: ACTIONS & ATTACK ADS -->
+    <div id="tabActions" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">Pusat Tindakan & Strategi Kempen Politik</div>
+        <div class="grid-3" style="margin-bottom: 20px;">
+          <button class="btn-primary" style="padding:14px;" onclick="runCeramahAction()">📢 Ceramah Perdana & Jelajah Negeri (8 PP / MYR 15,000)</button>
+          <button class="btn-purple" style="padding:14px;" onclick="runSocialMediaCampaign()">📱 Kempen Media Sosial & Perang Persepsi (12 PP / MYR 25,000)</button>
+          <button class="btn-green" style="padding:14px;" onclick="runCorporateLobbying()">💼 Persidangan Lobi Korporat (+MYR 100,000 Dana)</button>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>Penukaran Liquid Capital Kepada Dana Kempen</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Tukar dana peribadi kepada dana kempen untuk meningkatkan reputasi:</p>
+            <div class="form-group">
+              <label>Jumlah Penukaran (MYR):</label>
+              <input type="number" id="convertAmount" value="50000">
+            </div>
+            <button class="btn-green" style="width:100%;" onclick="convertCapital()">Tukar Dana (+Reputasi Politik)</button>
+          </div>
+
+          <div>
+            <h3>Iklan Serangan & Kempen Politik</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Lancar iklan kempen serangan terhadap parti pesaing:</p>
+            <div class="form-group">
+              <label>Pilih Parti Pesaing:</label>
+              <select id="attackTarget">
+                <option value="1">Perikatan Nasional (PN)</option>
+                <option value="2">Barisan Nasional (BN)</option>
+              </select>
+            </div>
+            <button class="btn-red" style="width:100%;" onclick="runAttackAd()">Lancar Iklan Serangan (10 PP / MYR 30,000)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
 </div>
 
-<!-- BOTTOM APP BAR -->
-<footer class="status-bar" id="mainFooter" style="display:none;">
-  <div style="color:#fff; font-weight:800;">
-    <span id="playerNameDisplay">Wan Luqman</span> | <span style="color:var(--text-muted)">Homebase: Selangor</span>
+<!-- FIXED BOTTOM APP BAR -->
+<footer class="status-bar" id="mainFooter" style="display: none;">
+  <div class="bottom-left-info">
+    <span id="bottomPlayerName" style="color:#fff; font-weight:800;">Wan Luqman</span>
+    <span style="color:var(--text-muted);">|</span>
+    <span>Minggu 25, 2026</span>
+    <span style="color:var(--text-muted);">|</span>
+    <span>🌙 Reset: <span id="mytCountdown" style="color:var(--accent-red);">12:00 AM MYT</span></span>
   </div>
-  <div style="display:flex; gap:10px;">
-    <span class="stat-pill stat-royal">👑 Favor: <span id="barRoyal">78%</span></span>
-    <span class="stat-pill stat-pp">⚡ PP: <span id="barPP">300.0</span></span>
-    <span class="stat-pill stat-capital">💼 Capital: MYR <span id="barCapital">1,000,000</span></span>
-    <span class="stat-pill stat-campaign">📢 Campaign: MYR <span id="barCampaign">1,000,000</span></span>
+  <div class="bottom-right-stats">
+    <div class="stat-badge-red">
+      <span>⚡ Actions:</span>
+      <span id="barPower">400.0</span>
+    </div>
+    <div class="stat-badge-green">
+      <span>💰 Campaign:</span>
+      <span id="barFunds">MYR 1,000,000</span>
+    </div>
   </div>
 </footer>
 
+<!-- External JavaScript Modules -->
 <script src="js/supabase-client.js"></script>
 <script src="js/app.js"></script>
+
 </body>
 </html>
